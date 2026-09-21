@@ -1,0 +1,193 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Записи{% endblock %}
+{% block page_title %}Записи клиентов{% endblock %}
+{% block page_subtitle %}Канбан-доска: перетаскивайте карточки между этапами{% endblock %}
+
+{% block header_actions %}
+<button type="button" id="openCreateBooking"
+        class="btn-gold rounded-full px-5 py-2.5 text-sm font-semibold hover:scale-105 transition-all duration-300">
+  + Новая запись
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Фильтры -->
+<div class="bg-white rounded-3xl border border-brand-100 p-5 mb-6 flex flex-wrap items-end gap-4">
+  <div>
+    <span class="block text-xs uppercase tracking-wider text-brand-600 mb-2">Быстрый период</span>
+    <div class="flex gap-2" id="quickFilters">
+      <button type="button" data-range="today" class="rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-700 hover:border-gold-400 hover:scale-105 transition-all duration-300">Сегодня</button>
+      <button type="button" data-range="week" class="rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-700 hover:border-gold-400 hover:scale-105 transition-all duration-300">Неделя</button>
+      <button type="button" data-range="month" class="rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-700 hover:border-gold-400 hover:scale-105 transition-all duration-300">Месяц</button>
+      <button type="button" data-range="all" class="rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-700 hover:border-gold-400 hover:scale-105 transition-all duration-300">Все</button>
+    </div>
+  </div>
+  <label class="block">
+    <span class="block text-xs uppercase tracking-wider text-brand-600 mb-2">С</span>
+    <input type="date" id="filterFrom" class="rounded-2xl border border-brand-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+  </label>
+  <label class="block">
+    <span class="block text-xs uppercase tracking-wider text-brand-600 mb-2">По</span>
+    <input type="date" id="filterTo" class="rounded-2xl border border-brand-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+  </label>
+  <button type="button" id="applyFilters"
+          class="btn-emerald rounded-full px-5 py-2.5 text-sm font-semibold hover:scale-105 transition-all duration-300">
+    Показать
+  </button>
+  <span id="boardTotal" class="text-sm text-brand-600 ml-auto"></span>
+</div>
+
+<!-- Канбан-доска -->
+<div class="kanban" id="kanbanBoard">
+  <div class="text-brand-600 text-sm p-6">Загрузка записей…</div>
+</div>
+
+<!-- ================= Модалка: карточка записи ================= -->
+<div id="bookingModal" class="js-modal fixed inset-0 z-50 hidden items-center justify-center bg-brand-900/60 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-[2rem] w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+    <div class="flex items-start justify-between gap-4 p-7 border-b border-brand-100">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-gold-600">Карточка записи</p>
+        <h2 id="modalClient" class="font-display text-3xl text-brand-800">—</h2>
+        <p id="modalContact" class="text-sm text-brand-600 mt-1"></p>
+      </div>
+      <button type="button" data-modal-close="bookingModal" class="text-brand-400 hover:text-brand-700 text-2xl leading-none">×</button>
+    </div>
+
+    <form id="bookingEditForm" class="p-7 space-y-5">
+      <input type="hidden" id="editBookingId">
+
+      <div class="grid sm:grid-cols-2 gap-5">
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Статус</span>
+          <select id="editStatus" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+            {% for status in statuses %}<option value="{{ status }}">{{ status }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Мастер</span>
+          <select id="editMaster" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+            {% for master in masters %}<option value="{{ master.id }}">{{ master.full_name }}{% if not master.is_active %} (скрыт){% endif %}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Дата</span>
+          <input type="date" id="editDate" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Время</span>
+          <input type="time" id="editTime" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+      </div>
+
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Гибкая цена, ₽</span>
+        <input type="number" id="editCost" min="0" step="50"
+               class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        <span class="text-xs text-brand-500 mt-1 block">Измените вручную: скидка, доплата за дополнительную зону и т. п.</span>
+      </label>
+
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Комментарий</span>
+        <textarea id="editComment" rows="3" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400"></textarea>
+      </label>
+
+      <div class="rounded-2xl bg-brand-50 border border-brand-100 p-4 text-sm text-brand-700 space-y-1">
+        <p><span class="text-brand-500">Услуга:</span> <span id="modalService">—</span></p>
+        <p><span class="text-brand-500">Рейтинг клиента:</span> <span id="modalRating">—</span></p>
+        <p><span class="text-brand-500">Заметки о клиенте:</span> <span id="modalNotes">—</span></p>
+        <p><span class="text-brand-500">Создана:</span> <span id="modalCreated">—</span></p>
+      </div>
+
+      <div class="flex flex-wrap gap-3 pt-2">
+        <button type="submit" class="btn-emerald rounded-full px-6 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">
+          Сохранить изменения
+        </button>
+        <a id="modalCall" href="#" class="rounded-full border border-brand-200 px-6 py-3 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">
+          Позвонить
+        </a>
+        {% if is_superadmin %}
+        <button type="button" id="deleteBooking"
+                class="rounded-full border border-rose-200 px-6 py-3 text-sm font-medium text-rose-700 hover:bg-rose-50 hover:scale-105 transition-all duration-300 ml-auto">
+          Удалить запись
+        </button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ================= Модалка: создание записи ================= -->
+<div id="createModal" class="js-modal fixed inset-0 z-50 hidden items-center justify-center bg-brand-900/60 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-[2rem] w-full max-w-xl max-h-[92vh] overflow-y-auto">
+    <div class="flex items-start justify-between gap-4 p-7 border-b border-brand-100">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-gold-600">Новая запись</p>
+        <h2 class="font-display text-3xl text-brand-800">Запись по звонку</h2>
+      </div>
+      <button type="button" data-modal-close="createModal" class="text-brand-400 hover:text-brand-700 text-2xl leading-none">×</button>
+    </div>
+
+    <form id="createBookingForm" class="p-7 space-y-5">
+      <div class="grid sm:grid-cols-2 gap-5">
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Имя клиента *</span>
+          <input type="text" id="newName" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Телефон *</span>
+          <input type="tel" id="newPhone" required placeholder="+7 (999) 123-45-67" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Услуга</span>
+          <select id="newService" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+            {% for service in services %}<option value="{{ service.id }}">{{ service.title }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Мастер</span>
+          <select id="newMaster" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+            {% for master in masters %}<option value="{{ master.id }}">{{ master.full_name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Дата</span>
+          <input type="date" id="newDate" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Время</span>
+          <input type="time" id="newTime" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+      </div>
+
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Комментарий</span>
+        <textarea id="newComment" rows="2" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400"></textarea>
+      </label>
+
+      <label class="flex items-center gap-3 text-sm text-brand-700">
+        <input type="checkbox" id="newForce" class="w-4 h-4 rounded border-brand-300">
+        Записать без проверки занятости слота (по согласованию с мастером)
+      </label>
+
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-gold rounded-full px-6 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">Создать запись</button>
+        <button type="button" data-modal-close="createModal" class="rounded-full border border-brand-200 px-6 py-3 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">Отмена</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/vendor/sortable.min.js"></script>
+<script>
+  window.CRM_DATA = {
+    isSuperadmin: {{ 'true' if is_superadmin else 'false' }},
+    statuses: {{ statuses | tojson }},
+    lostStatuses: {{ lost_statuses | tojson }}
+  };
+</script>
+<script src="/static/js/crm.js"></script>
+{% endblock %}

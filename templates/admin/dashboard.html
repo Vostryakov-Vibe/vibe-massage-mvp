@@ -1,0 +1,140 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Дашборд{% endblock %}
+{% block page_title %}Аналитический дашборд{% endblock %}
+{% block page_subtitle %}Фактическая выручка, конверсия, упущенная выгода и загруженность мастеров{% endblock %}
+
+{% block header_actions %}
+<button type="button" id="exportExcel"
+        class="btn-gold rounded-full px-5 py-2.5 text-sm font-semibold hover:scale-105 transition-all duration-300">
+  Выгрузить в Excel
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Фильтры -->
+<div class="bg-white rounded-3xl border border-brand-100 p-5 mb-6 flex flex-wrap items-end gap-4">
+  <div>
+    <span class="block text-xs uppercase tracking-wider text-brand-600 mb-2">Период</span>
+    <div class="flex gap-2" id="rangePresets">
+      {% for key, preset in presets.items() %}
+      <button type="button" data-preset="{{ key }}" data-from="{{ preset.date_from }}" data-to="{{ preset.date_to }}"
+              class="rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-700 hover:border-gold-400 hover:scale-105 transition-all duration-300">
+        {{ preset.label }}
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+  <label class="block">
+    <span class="block text-xs uppercase tracking-wider text-brand-600 mb-2">С</span>
+    <input type="date" id="rangeFrom" class="rounded-2xl border border-brand-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+  </label>
+  <label class="block">
+    <span class="block text-xs uppercase tracking-wider text-brand-600 mb-2">По</span>
+    <input type="date" id="rangeTo" class="rounded-2xl border border-brand-200 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+  </label>
+  <button type="button" id="applyRange"
+          class="btn-emerald rounded-full px-5 py-2.5 text-sm font-semibold hover:scale-105 transition-all duration-300">
+    Применить
+  </button>
+  <span id="periodLabel" class="text-sm text-brand-600 ml-auto"></span>
+</div>
+
+<!-- KPI -->
+<div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4 mb-6">
+  <div class="bg-gradient-to-br from-brand-600 to-brand-800 text-white rounded-3xl p-6">
+    <p class="text-xs uppercase tracking-[0.2em] text-gold-300">Фактическая выручка</p>
+    <p id="kpiRevenue" class="font-display text-4xl mt-3">—</p>
+    <p id="kpiRevenueNote" class="text-xs text-brand-100/70 mt-2">по выполненным записям</p>
+  </div>
+  <div class="bg-white rounded-3xl border border-brand-100 p-6">
+    <p class="text-xs uppercase tracking-[0.2em] text-rose-500">Упущенная выгода</p>
+    <p id="kpiLost" class="font-display text-4xl text-rose-700 mt-3">—</p>
+    <p id="kpiLostNote" class="text-xs text-brand-500 mt-2">отмены и неявки</p>
+  </div>
+  <div class="bg-white rounded-3xl border border-brand-100 p-6">
+    <p class="text-xs uppercase tracking-[0.2em] text-gold-600">Конверсия записей</p>
+    <p id="kpiConversion" class="font-display text-4xl text-brand-800 mt-3">—</p>
+    <p id="kpiConversionNote" class="text-xs text-brand-500 mt-2">выполнено от общего числа</p>
+  </div>
+  <div class="bg-white rounded-3xl border border-brand-100 p-6">
+    <p class="text-xs uppercase tracking-[0.2em] text-brand-600">Средний чек</p>
+    <p id="kpiAvgCheck" class="font-display text-4xl text-brand-800 mt-3">—</p>
+    <p id="kpiClients" class="text-xs text-brand-500 mt-2">клиентов: —</p>
+  </div>
+</div>
+
+<!-- Графики -->
+<div class="grid gap-6 xl:grid-cols-3 mb-6">
+  <div class="xl:col-span-2 bg-white rounded-3xl border border-brand-100 p-6">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Выручка по дням</h2>
+    <p class="text-sm text-brand-500 mb-5">Столбцы — фактическая выручка, линия — количество записей</p>
+    <div class="h-72"><canvas id="revenueChart"></canvas></div>
+  </div>
+  <div class="bg-white rounded-3xl border border-brand-100 p-6">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Популярные услуги</h2>
+    <p class="text-sm text-brand-500 mb-5">Доля записей за период</p>
+    <div class="h-72"><canvas id="servicesChart"></canvas></div>
+  </div>
+</div>
+
+<div class="grid gap-6 xl:grid-cols-2 mb-6">
+  <div class="bg-white rounded-3xl border border-brand-100 p-6">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Упущенная выгода по дням</h2>
+    <p class="text-sm text-brand-500 mb-5">Суммы по отменённым записям и неявкам, ₽</p>
+    <div class="h-64"><canvas id="lostChart"></canvas></div>
+  </div>
+  <div class="bg-white rounded-3xl border border-brand-100 p-6">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Загруженность мастеров</h2>
+    <p class="text-sm text-brand-500 mb-5">Часы на сеансах к часам по графику смен, %</p>
+    <div class="h-64"><canvas id="workloadChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Таблицы -->
+<div class="grid gap-6 xl:grid-cols-2">
+  <div class="bg-white rounded-3xl border border-brand-100 p-6">
+    <h2 class="font-display text-2xl text-brand-800 mb-4">Загруженность в цифрах</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs uppercase tracking-wider text-brand-500 border-b border-brand-100">
+            <th class="py-3 pr-4">Мастер</th>
+            <th class="py-3 pr-4">Смен</th>
+            <th class="py-3 pr-4">Часов по графику</th>
+            <th class="py-3 pr-4">Часов на сеансах</th>
+            <th class="py-3">Загрузка</th>
+          </tr>
+        </thead>
+        <tbody id="workloadTable">
+          <tr><td colspan="5" class="py-4 text-brand-500">Загрузка данных…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-3xl border border-brand-100 p-6">
+    <h2 class="font-display text-2xl text-brand-800 mb-4">Последние отмены</h2>
+    <div class="overflow-x-auto max-h-80 overflow-y-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-xs uppercase tracking-wider text-brand-500 border-b border-brand-100">
+            <th class="py-3 pr-4">Дата</th>
+            <th class="py-3 pr-4">Клиент</th>
+            <th class="py-3 pr-4">Услуга</th>
+            <th class="py-3">Потеряно</th>
+          </tr>
+        </thead>
+        <tbody id="lostTable">
+          <tr><td colspan="4" class="py-4 text-brand-500">Загрузка данных…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/vendor/chart.umd.min.js"></script>
+<script src="/static/js/dashboard.js"></script>
+{% endblock %}

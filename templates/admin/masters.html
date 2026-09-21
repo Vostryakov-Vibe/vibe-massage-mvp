@@ -1,0 +1,180 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Мастера{% endblock %}
+{% block page_title %}Мастера и графики смен{% endblock %}
+{% block page_subtitle %}График смен определяет, какие таймслоты увидят клиенты на сайте{% endblock %}
+
+{% block header_actions %}
+<button type="button" id="openMasterModal"
+        class="btn-gold rounded-full px-5 py-2.5 text-sm font-semibold hover:scale-105 transition-all duration-300">
+  + Новый мастер
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="grid gap-6 xl:grid-cols-2">
+  {% for master in masters %}
+  <article class="bg-white rounded-3xl border {{ 'border-brand-100' if master.is_active else 'border-amber-200 opacity-80' }} p-6">
+    <div class="flex gap-5">
+      <img src="/static/uploads/{{ master.avatar_filename }}" alt="{{ master.full_name }}"
+           class="w-20 h-20 rounded-2xl object-cover ring-2 ring-gold-400/40">
+      <div class="flex-1 min-w-0">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="font-display text-2xl text-brand-800">{{ master.full_name }}</h2>
+            <p class="text-sm text-gold-600">{{ master.specialization }}</p>
+          </div>
+          {% if not master.is_active %}
+          <span class="rounded-full bg-amber-500 text-white text-xs px-3 py-1 shrink-0">скрыт</span>
+          {% endif %}
+        </div>
+        <p class="text-xs uppercase tracking-wider text-brand-500 mt-2">
+          Опыт {{ master.experience_years }} {{ master.experience_years | plural('год', 'года', 'лет') }}
+        </p>
+        <p class="text-sm text-brand-600 mt-3">{{ master.bio }}</p>
+      </div>
+    </div>
+
+    <div class="mt-5 pt-5 border-t border-brand-50">
+      <p class="text-xs uppercase tracking-wider text-brand-600 mb-3">Ближайшие смены</p>
+      <div class="flex flex-wrap gap-2">
+        {% for shift in schedules[master.id] %}
+        <span class="rounded-full bg-brand-50 border border-brand-100 text-xs px-3 py-1.5 text-brand-700">
+          {{ shift.date | short_date }} · {{ shift.start_time }}–{{ shift.end_time }}
+        </span>
+        {% else %}
+        <span class="text-sm text-amber-700">Смены не заданы — клиенты не смогут записаться</span>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 mt-5">
+      <button type="button" class="js-edit-master btn-emerald rounded-full px-4 py-2 text-xs font-semibold hover:scale-105 transition-all duration-300"
+              data-master='{{ {"id": master.id, "full_name": master.full_name, "specialization": master.specialization, "experience_years": master.experience_years, "bio": master.bio, "is_active": master.is_active} | tojson }}'>
+        Редактировать
+      </button>
+      <button type="button" class="js-schedule-master rounded-full border border-brand-200 px-4 py-2 text-xs font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300"
+              data-id="{{ master.id }}" data-name="{{ master.full_name }}">
+        График смен
+      </button>
+      <button type="button" class="js-toggle-master rounded-full border border-brand-200 px-4 py-2 text-xs font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300"
+              data-id="{{ master.id }}" data-active="{{ '1' if master.is_active else '0' }}">
+        {{ 'Скрыть с сайта' if master.is_active else 'Вернуть на сайт' }}
+      </button>
+      {% if is_superadmin %}
+      <button type="button" class="js-hard-delete-master rounded-full border border-rose-200 px-4 py-2 text-xs font-medium text-rose-700 hover:bg-rose-50 hover:scale-105 transition-all duration-300 ml-auto"
+              data-id="{{ master.id }}" data-name="{{ master.full_name }}">
+        Удалить
+      </button>
+      {% endif %}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+
+<!-- Модалка мастера -->
+<div id="masterModal" class="js-modal fixed inset-0 z-50 hidden items-center justify-center bg-brand-900/60 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-[2rem] w-full max-w-lg max-h-[92vh] overflow-y-auto">
+    <div class="flex items-start justify-between gap-4 p-7 border-b border-brand-100">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-gold-600">Мастер</p>
+        <h2 id="masterModalTitle" class="font-display text-3xl text-brand-800">Новый мастер</h2>
+      </div>
+      <button type="button" data-modal-close="masterModal" class="text-brand-400 hover:text-brand-700 text-2xl leading-none">×</button>
+    </div>
+
+    <form id="masterForm" class="p-7 space-y-5">
+      <input type="hidden" id="masterId">
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">ФИО *</span>
+        <input type="text" id="masterName" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+      </label>
+      <div class="grid sm:grid-cols-2 gap-5">
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Специализация</span>
+          <input type="text" id="masterSpec" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Опыт, лет</span>
+          <input type="number" id="masterExp" min="0" value="5" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+      </div>
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Описание</span>
+        <textarea id="masterBio" rows="4" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400"></textarea>
+      </label>
+      <label class="flex items-center gap-3 text-sm text-brand-700">
+        <input type="checkbox" id="masterActive" checked class="w-4 h-4 rounded border-brand-300">
+        Показывать на сайте
+      </label>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-emerald rounded-full px-6 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">Сохранить</button>
+        <button type="button" data-modal-close="masterModal" class="rounded-full border border-brand-200 px-6 py-3 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">Отмена</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Модалка графика -->
+<div id="scheduleModal" class="js-modal fixed inset-0 z-50 hidden items-center justify-center bg-brand-900/60 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-[2rem] w-full max-w-xl max-h-[92vh] overflow-y-auto">
+    <div class="flex items-start justify-between gap-4 p-7 border-b border-brand-100">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-gold-600">График смен</p>
+        <h2 id="scheduleTitle" class="font-display text-3xl text-brand-800">—</h2>
+      </div>
+      <button type="button" data-modal-close="scheduleModal" class="text-brand-400 hover:text-brand-700 text-2xl leading-none">×</button>
+    </div>
+
+    <form id="scheduleForm" class="p-7 space-y-5">
+      <input type="hidden" id="scheduleMasterId">
+
+      <div class="grid sm:grid-cols-2 gap-5">
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Период с</span>
+          <input type="date" id="scheduleFrom" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">по</span>
+          <input type="date" id="scheduleTo" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Начало смены</span>
+          <input type="time" id="scheduleStart" value="10:00" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Конец смены</span>
+          <input type="time" id="scheduleEnd" value="19:00" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+      </div>
+
+      <div>
+        <span class="text-xs uppercase tracking-wider text-brand-600">Дни недели</span>
+        <div class="flex flex-wrap gap-2 mt-3" id="weekdayBox">
+          {% for day in ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'] %}
+          <label class="cursor-pointer">
+            <input type="checkbox" value="{{ loop.index0 }}" class="peer sr-only js-weekday">
+            <span class="inline-block rounded-full border border-brand-200 px-4 py-2 text-sm text-brand-700 peer-checked:bg-gold-400 peer-checked:text-brand-900 peer-checked:border-gold-400 transition-all duration-300">{{ day }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <p class="text-xs text-brand-500 mt-2">Если не выбрать ни один день — смены будут созданы на все дни периода.</p>
+      </div>
+
+      <label class="flex items-center gap-3 text-sm text-brand-700">
+        <input type="checkbox" id="scheduleReplace" checked class="w-4 h-4 rounded border-brand-300">
+        Заменить существующие смены в этом периоде
+      </label>
+
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-gold rounded-full px-6 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">Заполнить график</button>
+        <button type="button" data-modal-close="scheduleModal" class="rounded-full border border-brand-200 px-6 py-3 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">Отмена</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/masters.js"></script>
+{% endblock %}

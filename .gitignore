@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Данные приложения: база, WAL-файлы, резервные копии
+instance/
+data/
+
+# Секреты
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Отчёты
+*.xlsx
+salon-report-*.xlsx

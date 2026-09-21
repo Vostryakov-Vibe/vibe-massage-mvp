@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вход в CRM — {{ salon.name }}</title>
+  <link rel="stylesheet" href="/static/css/fonts.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/vendor/tailwind.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { 50: '#eef6f4', 100: '#d7eae6', 200: '#b0d5cd', 300: '#7fb8ac', 400: '#4f9488', 500: '#0b6b5f', 600: '#044a42', 700: '#043c35', 800: '#022c26', 900: '#011d19' },
+            gold: { 100: '#faf1d6', 200: '#f3e3b3', 300: '#ecd28a', 400: '#e5c158', 500: '#d4af37', 600: '#b8952c', 700: '#8f7222' }
+          },
+          fontFamily: { sans: ['Manrope', 'Segoe UI', 'system-ui', 'sans-serif'], display: ['Cormorant Garamond', 'Georgia', 'serif'] }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-brand-500 via-brand-600 to-brand-900 flex items-center justify-center p-4">
+
+  <div class="w-full max-w-md">
+    <div class="bg-white rounded-[2rem] shadow-soft p-9">
+      <div class="text-center mb-8">
+        <span class="w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-brand-800 font-display text-2xl font-bold mb-4">Г</span>
+        <h1 class="font-display text-3xl text-brand-800">{{ salon.name }}</h1>
+        <p class="text-sm text-brand-600 mt-2">Вход в панель управления</p>
+      </div>
+
+      {% if error %}
+      <div class="mb-5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 text-sm">{{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="/admin/login" class="space-y-5">
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Логин</span>
+          <input type="text" name="username" value="{{ username }}" required autofocus autocomplete="username"
+                 class="mt-2 w-full rounded-2xl border border-brand-200 bg-brand-50/40 px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-all duration-300">
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Пароль</span>
+          <input type="password" name="password" required autocomplete="current-password"
+                 class="mt-2 w-full rounded-2xl border border-brand-200 bg-brand-50/40 px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-all duration-300">
+        </label>
+
+        <button type="submit"
+                class="btn-gold w-full rounded-full px-8 py-4 font-semibold hover:scale-105 transition-all duration-300">
+          Войти
+        </button>
+      </form>
+
+      <p class="text-xs text-brand-500 text-center mt-7 leading-relaxed">
+        Пароли хранятся только в виде bcrypt-хэшей.<br>
+        Смените пароль по умолчанию в разделе «Настройки».
+      </p>
+    </div>
+
+    <p class="text-center text-brand-100/80 text-sm mt-6">
+      <a href="/" class="hover:text-gold-300 transition-colors duration-300">← Вернуться на сайт салона</a>
+    </p>
+  </div>
+
+</body>
+</html>

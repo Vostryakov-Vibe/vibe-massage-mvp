@@ -1,0 +1,117 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Пользователи{% endblock %}
+{% block page_title %}Пользователи и пароли{% endblock %}
+{% block page_subtitle %}Суперадмин управляет доступом; пароли хранятся только в виде bcrypt-хэшей{% endblock %}
+
+{% block header_actions %}
+<button type="button" id="openUserModal"
+        class="btn-gold rounded-full px-5 py-2.5 text-sm font-semibold hover:scale-105 transition-all duration-300">
+  + Новый пользователь
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-3xl border border-brand-100 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-brand-50/70">
+        <tr class="text-left text-xs uppercase tracking-wider text-brand-600">
+          <th class="px-5 py-4">Логин</th>
+          <th class="px-5 py-4">Имя</th>
+          <th class="px-5 py-4">Роль</th>
+          <th class="px-5 py-4">Статус</th>
+          <th class="px-5 py-4">Создан</th>
+          <th class="px-5 py-4"></th>
+        </tr>
+      </thead>
+      <tbody id="usersTable">
+        {% for item in users %}
+        <tr class="border-t border-brand-50" data-user='{{ {"id": item.id, "username": item.username, "full_name": item.full_name, "role": item.role, "is_active": item.is_active} | tojson }}'>
+          <td class="px-5 py-4 font-medium text-brand-800">{{ item.username }}</td>
+          <td class="px-5 py-4">{{ item.full_name or "—" }}</td>
+          <td class="px-5 py-4">
+            <span class="rounded-full px-3 py-1 text-xs {{ 'bg-gold-100 text-gold-700' if item.role == role_superadmin else 'bg-brand-50 text-brand-700' }}">{{ item.role }}</span>
+          </td>
+          <td class="px-5 py-4">
+            {% if item.is_active %}
+            <span class="rounded-full bg-emerald-100 text-emerald-800 text-xs px-3 py-1">активен</span>
+            {% else %}
+            <span class="rounded-full bg-slate-200 text-slate-700 text-xs px-3 py-1">заблокирован</span>
+            {% endif %}
+          </td>
+          <td class="px-5 py-4 text-brand-600">{{ item.created_at | short_date }}</td>
+          <td class="px-5 py-4 text-right whitespace-nowrap">
+            <button type="button" class="js-edit-user text-brand-600 hover:text-gold-600 font-medium">Изменить</button>
+            {% if item.id != user.id %}
+            <button type="button" class="js-delete-user text-rose-600 hover:text-rose-800 font-medium ml-4" data-id="{{ item.id }}" data-username="{{ item.username }}">Удалить</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="bg-brand-50 border border-brand-100 rounded-3xl p-6 mt-6 text-sm text-brand-700">
+  <p class="font-semibold text-brand-800 mb-2">Права доступа</p>
+  <p><span class="font-medium">Superadmin</span> — полный доступ: дашборд, услуги, мастера, графики, маркетинг, архив, пользователи, настройки.</p>
+  <p class="mt-1"><span class="font-medium">Manager</span> — работа с записями (Канбан-доска) и карточками клиентов.</p>
+</div>
+
+<!-- Модалка пользователя -->
+<div id="userModal" class="js-modal fixed inset-0 z-50 hidden items-center justify-center bg-brand-900/60 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-[2rem] w-full max-w-lg">
+    <div class="flex items-start justify-between gap-4 p-7 border-b border-brand-100">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-gold-600">Пользователь</p>
+        <h2 id="userModalTitle" class="font-display text-3xl text-brand-800">Новый пользователь</h2>
+      </div>
+      <button type="button" data-modal-close="userModal" class="text-brand-400 hover:text-brand-700 text-2xl leading-none">×</button>
+    </div>
+
+    <form id="userForm" class="p-7 space-y-5">
+      <input type="hidden" id="userId">
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Логин *</span>
+        <input type="text" id="userLogin" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+      </label>
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Имя сотрудника</span>
+        <input type="text" id="userFullName" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+      </label>
+      <div class="grid sm:grid-cols-2 gap-5">
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Роль</span>
+          <select id="userRole" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+            <option value="{{ role_manager }}">{{ role_manager }}</option>
+            <option value="{{ role_superadmin }}">{{ role_superadmin }}</option>
+          </select>
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600" id="userPasswordLabel">Пароль *</span>
+          <input type="text" id="userPassword" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+          <span class="text-xs text-brand-500 mt-1 block" id="userPasswordHint">Минимум 6 символов.</span>
+        </label>
+      </div>
+      <label class="flex items-center gap-3 text-sm text-brand-700" id="userActiveBox">
+        <input type="checkbox" id="userActive" checked class="w-4 h-4 rounded border-brand-300">
+        Доступ разрешён
+      </label>
+
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-emerald rounded-full px-6 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">Сохранить</button>
+        <button type="button" data-modal-close="userModal" class="rounded-full border border-brand-200 px-6 py-3 text-sm font-medium text-brand-700 hover:bg-brand-50">Отмена</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.CURRENT_USER_ID = {{ user.id }};
+</script>
+<script src="/static/js/users.js"></script>
+{% endblock %}

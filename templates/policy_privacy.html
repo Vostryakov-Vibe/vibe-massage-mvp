@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Политика конфиденциальности — {{ salon.name }}{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+  <p class="uppercase tracking-[0.3em] text-gold-600 text-xs mb-4">Правовая информация</p>
+  <h1 class="font-display text-4xl sm:text-5xl text-brand-800 mb-4">Политика конфиденциальности</h1>
+  <p class="text-sm text-brand-600 mb-12">Редакция от {{ updated | human_date }}</p>
+
+  <div class="space-y-8 text-brand-800/90 leading-relaxed">
+    <section>
+      <h2 class="font-display text-2xl text-brand-800 mb-3">1. Общие положения</h2>
+      <p>Настоящая Политика определяет порядок обработки персональных данных и меры по обеспечению
+      их безопасности в {{ salon.name }} (далее — Салон) в соответствии с Федеральным законом
+      от 27.07.2006 № 152-ФЗ «О персональных данных».</p>
+    </section>
+
+    <section>
+      <h2 class="font-display text-2xl text-brand-800 mb-3">2. Состав обрабатываемых данных</h2>
+      <p>Салон обрабатывает следующие персональные данные, которые вы сообщаете добровольно при
+      онлайн-записи или по телефону:</p>
+      <ul class="list-disc pl-6 mt-3 space-y-2">
+        <li>фамилия и имя;</li>
+        <li>номер телефона;</li>
+        <li>контакт в мессенджере (Telegram, VK) — при добровольном указании;</li>
+        <li>комментарий к записи, если вы указали в нём сведения о состоянии здоровья;</li>
+        <li>дата и IP-адрес получения согласия.</li>
+      </ul>
+      <p class="mt-3">Специальные категории данных (сведения о здоровье) обрабатываются исключительно
+      в объёме, необходимом для безопасного проведения массажа, и только с вашего согласия.</p>
+    </section>
+
+    <section>
+      <h2 class="font-display text-2xl text-brand-800 mb-3">3. Цели обработки</h2>
+      <ul class="list-disc pl-6 space-y-2">
+        <li>оформление и подтверждение записи на процедуру;</li>
+        <li>информирование о времени визита, переносах и напоминаниях;</li>
+        <li>ведение внутренней истории обслуживания для подбора корректной техники массажа;</li>
+        <li>улучшение качества сервиса.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="font-display text-2xl text-brand-800 mb-3">4. Правовые основания и сроки</h2>
+      <p>Обработка осуществляется на основании вашего согласия, которое вы даёте при заполнении
+      формы онлайн-записи. Согласие действует до его отзыва. Данные хранятся не дольше, чем это
+      необходимо для целей обработки, после чего удаляются или обезличиваются.</p>
+    </section>
+
+    <section>
+      <h2 class="font-display text-2xl text-brand-800 mb-3">5. Передача третьим лицам</h2>
+      <p>Салон не продаёт и не передаёт персональные данные третьим лицам, за исключением случаев,
+      прямо предусмотренных законодательством РФ, а также передачи обезличенной информации о записи
+      сотрудникам Салона в закрытый служебный чат для организации приёма.</p>
+    </section>
+
+    <section>
+      <h2 class="font-display text-2xl text-brand-800 mb-3">6. Меры защиты</h2>
+      <p>Доступ к данным имеют только уполномоченные сотрудники. Применяются организационные и
+      технические меры: ограничение доступа по ролям, хранение паролей в виде необратимых хэшей,
+      защита форм от автоматических отправок.</p>
+    </section>
+
+    <section>
+      <h2 class="font-display text-2xl text-brand-800 mb-3">7. Права субъекта данных</h2>
+      <p>Вы вправе запросить сведения об обработке ваших данных, потребовать их уточнения,
+      блокирования или уничтожения, а также отозвать согласие. Для этого свяжитесь с нами:</p>
+      <p class="mt-3">{{ salon.address }}<br>
+      Телефон: <a href="tel:{{ salon.phone | tel }}" class="text-gold-600 underline decoration-dotted">{{ salon.phone }}</a><br>
+      E-mail: <a href="mailto:{{ salon.email }}" class="text-gold-600 underline decoration-dotted">{{ salon.email }}</a></p>
+    </section>
+
+    <section>
+      <h2 class="font-display text-2xl text-brand-800 mb-3">8. Изменения политики</h2>
+      <p>Салон вправе изменять настоящую Политику. Актуальная редакция всегда доступна на этой
+      странице.</p>
+    </section>
+  </div>
+
+  <div class="mt-14 flex flex-wrap gap-4">
+    <a href="/policy/consent" class="btn-emerald rounded-full px-7 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">Согласие на обработку данных</a>
+    <a href="/#booking" class="rounded-full px-7 py-3 text-sm font-semibold border border-brand-300 text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">Вернуться к записи</a>
+  </div>
+</section>
+{% endblock %}

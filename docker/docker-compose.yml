@@ -1,0 +1,45 @@
+# ===========================================================================
+#  Изолированный запуск: docker compose -f docker/docker-compose.yml up --build
+#  Данные (БД и загруженные изображения) хранятся в именованных томах,
+#  поэтому пересборка контейнера их не удаляет.
+# ===========================================================================
+services:
+  salon:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: salon-harmony:1.0.0
+    container_name: salon-harmony
+    ports:
+      - "8000:8000"
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8000"
+      DEBUG: "false"
+      # Секрет для подписи cookie сессии. Замените на свой!
+      SECRET_KEY: "change-me-in-production-please"
+      # Ключи интеграций можно задать здесь или в файле ../.env
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN:-}"
+      TELEGRAM_CHAT_ID: "${TELEGRAM_CHAT_ID:-}"
+      VK_ACCESS_TOKEN: "${VK_ACCESS_TOKEN:-}"
+      VK_GROUP_ID: "${VK_GROUP_ID:-}"
+      TURNSTILE_SITE_KEY: "${TURNSTILE_SITE_KEY:-}"
+      TURNSTILE_SECRET_KEY: "${TURNSTILE_SECRET_KEY:-}"
+    env_file:
+      # Файл .env необязателен: без него приложение работает в офлайн-режиме.
+      - path: ../.env
+        required: false
+    volumes:
+      - salon-db:/app/instance
+      - salon-uploads:/app/static/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  salon-db:
+  salon-uploads:

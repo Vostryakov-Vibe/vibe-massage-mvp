@@ -1,0 +1,262 @@
+/* =========================================================================
+   Салон «Гармония» — собственные стили поверх локального Tailwind.
+   Здесь только то, что неудобно выражать утилитами: анимации появления,
+   форма «посадочного талона», галочка успеха, стили Канбан-доски.
+   ========================================================================= */
+
+:root {
+  --brand-deep: #044a42;
+  --brand-darker: #022c26;
+  --brand-light: #0b6b5f;
+  --gold: #d4af37;
+  --gold-light: #e5c158;
+  --paper: #fbf8f3;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Manrope", "Segoe UI", system-ui, sans-serif;
+  background-color: var(--paper);
+  color: #14302c;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+}
+
+/* --- Появление блоков при скролле --------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* --- Кнопки -------------------------------------------------------------- */
+.btn-gold {
+  background-image: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #2b1f00;
+  box-shadow: 0 10px 25px -12px rgba(212, 175, 55, 0.85);
+}
+
+.btn-gold:hover {
+  box-shadow: 0 16px 32px -12px rgba(212, 175, 55, 0.95);
+}
+
+.btn-emerald {
+  background-image: linear-gradient(135deg, var(--brand-light), var(--brand-deep));
+  color: #f7f3e8;
+  box-shadow: 0 10px 25px -14px rgba(4, 74, 66, 0.9);
+}
+
+/* --- Посадочный талон (модальное окно успешной записи) ------------------ */
+.ticket {
+  position: relative;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(212, 175, 55, 0.18), transparent 45%),
+    #ffffff;
+  border-radius: 22px;
+  transform: rotate(2.5deg);
+  animation: ticket-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  box-shadow: 0 35px 70px -30px rgba(2, 44, 38, 0.65);
+}
+
+@keyframes ticket-in {
+  from { opacity: 0; transform: rotate(-4deg) translateY(38px) scale(0.94); }
+  to   { opacity: 1; transform: rotate(2.5deg) translateY(0) scale(1); }
+}
+
+/* Перфорация: полукруглые вырезы по бокам линии отрыва */
+.ticket__perforation {
+  position: relative;
+  border-top: 2px dashed rgba(4, 74, 66, 0.28);
+  margin: 1.35rem 0;
+}
+
+.ticket__perforation::before,
+.ticket__perforation::after {
+  content: "";
+  position: absolute;
+  top: -13px;
+  width: 26px;
+  height: 26px;
+  border-radius: 9999px;
+  background: rgba(2, 44, 38, 0.55);
+}
+
+.ticket__perforation::before { left: -26px; }
+.ticket__perforation::after { right: -26px; }
+
+/* --- Анимированная галочка успеха --------------------------------------- */
+.success-check {
+  width: 92px;
+  height: 92px;
+}
+
+.success-check__circle {
+  stroke: #0b6b5f;
+  stroke-width: 3;
+  fill: rgba(11, 107, 95, 0.08);
+  stroke-dasharray: 290;
+  stroke-dashoffset: 290;
+  animation: draw-circle 0.7s ease-out 0.1s forwards;
+}
+
+.success-check__mark {
+  stroke: #1a9e7f;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw-mark 0.45s ease-out 0.75s forwards;
+}
+
+@keyframes draw-circle {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes draw-mark {
+  to { stroke-dashoffset: 0; }
+}
+
+/* --- Канбан-доска -------------------------------------------------------- */
+.kanban {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  align-items: flex-start;
+}
+
+.kanban__column {
+  flex: 0 0 19rem;
+  background: #f2f6f5;
+  border: 1px solid #dbe7e4;
+  border-radius: 1rem;
+  max-height: calc(100vh - 15rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.kanban__list {
+  overflow-y: auto;
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-height: 5rem;
+  flex: 1;
+}
+
+.kanban__list.is-over {
+  background: rgba(212, 175, 55, 0.12);
+  border-radius: 0.75rem;
+}
+
+.booking-card {
+  cursor: grab;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.booking-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px -18px rgba(4, 74, 66, 0.7);
+}
+
+.booking-card.sortable-ghost {
+  opacity: 0.4;
+}
+
+.booking-card.sortable-chosen {
+  transform: rotate(1.5deg) scale(1.02);
+}
+
+/* --- Скроллбары ---------------------------------------------------------- */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(4, 74, 66, 0.35) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(4, 74, 66, 0.32);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(4, 74, 66, 0.5);
+}
+
+/* --- Уведомления (тосты) ------------------------------------------------- */
+.toast-stack {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-width: 22rem;
+}
+
+.toast {
+  animation: toast-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  box-shadow: 0 20px 40px -24px rgba(2, 44, 38, 0.8);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --- Пульс для «новой записи» в CRM -------------------------------------- */
+@keyframes soft-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.55); }
+  50%      { box-shadow: 0 0 0 10px rgba(212, 175, 55, 0); }
+}
+
+.pulse-gold {
+  animation: soft-pulse 2s infinite;
+}
+
+/* --- Таймслоты ----------------------------------------------------------- */
+.slot-btn.is-selected {
+  background-image: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #2b1f00;
+  border-color: transparent;
+}
+
+/* --- Печать талона ------------------------------------------------------- */
+@media print {
+  .no-print { display: none !important; }
+  .ticket { transform: none; box-shadow: none; }
+}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Админ-панель{% endblock %} — {{ salon.name }}</title>
+  <meta name="csrf-token" content="{{ csrf_token }}">
+
+  <link rel="stylesheet" href="/static/css/fonts.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/vendor/tailwind.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef6f4', 100: '#d7eae6', 200: '#b0d5cd', 300: '#7fb8ac',
+              400: '#4f9488', 500: '#0b6b5f', 600: '#044a42', 700: '#043c35',
+              800: '#022c26', 900: '#011d19'
+            },
+            gold: {
+              100: '#faf1d6', 200: '#f3e3b3', 300: '#ecd28a', 400: '#e5c158',
+              500: '#d4af37', 600: '#b8952c', 700: '#8f7222'
+            }
+          },
+          fontFamily: {
+            sans: ['Manrope', 'Segoe UI', 'system-ui', 'sans-serif'],
+            display: ['Cormorant Garamond', 'Georgia', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-[#f4f7f6]">
+
+<div class="flex min-h-screen">
+  <!-- ================= Боковое меню ================= -->
+  <aside class="w-64 shrink-0 bg-gradient-to-b from-brand-600 to-brand-900 text-white flex flex-col">
+    <a href="/" class="flex items-center gap-3 px-6 py-6 border-b border-white/10">
+      <span class="w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-brand-800 font-display text-xl font-bold">Г</span>
+      <span class="leading-tight">
+        <span class="block font-display text-lg">Гармония</span>
+        <span class="block text-[10px] uppercase tracking-[0.2em] text-gold-300">CRM салона</span>
+      </span>
+    </a>
+
+    <nav class="flex-1 px-3 py-5 space-y-1 text-sm overflow-y-auto">
+      {% set items = [
+        ('dashboard', '/admin/dashboard', 'Дашборд', true),
+        ('crm', '/admin/crm', 'Записи (CRM)', false),
+        ('clients', '/admin/clients', 'Клиенты', false),
+        ('services', '/admin/services', 'Услуги', true),
+        ('masters', '/admin/masters', 'Мастера и графики', true),
+        ('marketing', '/admin/marketing', 'Маркетинг и ИИ', true),
+        ('archive', '/admin/archive', 'Архив и отзывы', true),
+        ('users', '/admin/users', 'Пользователи', true),
+        ('settings', '/admin/settings', 'Настройки', true)
+      ] %}
+      {% for key, url, label, superadmin_only in items %}
+        {% if not superadmin_only or is_superadmin %}
+        <a href="{{ url }}"
+           class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 {{ 'bg-white/15 text-gold-300 font-semibold' if active_page == key else 'text-brand-100/85 hover:bg-white/10 hover:translate-x-1' }}">
+          <span class="w-1.5 h-1.5 rounded-full {{ 'bg-gold-400' if active_page == key else 'bg-brand-300/50' }}"></span>
+          {{ label }}
+        </a>
+        {% endif %}
+      {% endfor %}
+    </nav>
+
+    <div class="px-5 py-5 border-t border-white/10 text-xs text-brand-100/70">
+      <p class="font-semibold text-white">{{ user.full_name or user.username }}</p>
+      <p class="text-gold-300 mt-0.5">{{ user.role }}</p>
+      <a href="/admin/logout" class="mt-3 inline-block rounded-full border border-white/25 px-4 py-1.5 hover:bg-white/10 hover:scale-105 transition-all duration-300">Выйти</a>
+    </div>
+  </aside>
+
+  <!-- ================= Контент ================= -->
+  <div class="flex-1 min-w-0 flex flex-col">
+    <header class="bg-white border-b border-brand-100 px-8 py-5 flex items-center justify-between gap-6">
+      <div>
+        <h1 class="font-display text-3xl text-brand-800">{% block page_title %}Админ-панель{% endblock %}</h1>
+        <p class="text-sm text-brand-600 mt-1">{% block page_subtitle %}{% endblock %}</p>
+      </div>
+      <div class="flex items-center gap-3">
+        {% block header_actions %}{% endblock %}
+        <span id="liveIndicator" class="hidden items-center gap-2 text-xs text-brand-600 bg-brand-50 border border-brand-100 rounded-full px-3 py-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 pulse-gold"></span> онлайн
+        </span>
+      </div>
+    </header>
+
+    {% if denied %}
+    <div class="mx-8 mt-6 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 px-5 py-4 text-sm">
+      Раздел доступен только Суперадмину. Менеджер работает с записями и клиентами.
+    </div>
+    {% endif %}
+
+    <main class="flex-1 p-8">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="/static/js/common.js"></script>
+<script src="/static/js/admin.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

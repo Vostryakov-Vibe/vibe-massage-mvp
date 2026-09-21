@@ -1,0 +1,159 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Маркетинг{% endblock %}
+{% block page_title %}Маркетинговый ИИ-модуль{% endblock %}
+{% block page_subtitle %}Генерация постов: крючок → польза → призыв к действию. Работает офлайн на встроенных шаблонах{% endblock %}
+
+{% block header_actions %}
+<button type="button" id="cleanupPosts"
+        class="rounded-full border border-brand-200 px-5 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">
+  Очистить архив старше {{ retention_days }} дней
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="grid gap-6 xl:grid-cols-[1fr_1fr]">
+  <!-- Форма -->
+  <form id="marketingForm" class="bg-white rounded-3xl border border-brand-100 p-7 space-y-5">
+    <div>
+      <p class="text-xs uppercase tracking-[0.2em] text-gold-600 mb-4">Параметры поста</p>
+      <h2 class="font-display text-2xl text-brand-800">Что публикуем?</h2>
+    </div>
+
+    <label class="block">
+      <span class="text-xs uppercase tracking-wider text-brand-600">Тема *</span>
+      <input type="text" id="postTopic" required placeholder="Например: массаж спины для тех, кто работает за компьютером"
+             class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+    </label>
+
+    <div class="grid sm:grid-cols-2 gap-5">
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Тональность</span>
+        <select id="postTone" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+          {% for tone in tones %}<option value="{{ tone }}">{{ tone }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Длина</span>
+        <select id="postLength" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+          {% for length in lengths %}<option value="{{ length }}" {{ 'selected' if length == 'Средний' }}>{{ length }}</option>{% endfor %}
+        </select>
+      </label>
+    </div>
+
+    <label class="block">
+      <span class="text-xs uppercase tracking-wider text-brand-600">Ключевые слова (через запятую)</span>
+      <input type="text" id="postKeywords" placeholder="шея, осанка, работа за компьютером"
+             class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+    </label>
+
+    <div class="rounded-2xl bg-brand-50 border border-brand-100 p-4 space-y-3">
+      <p class="text-xs uppercase tracking-wider text-brand-600">Отправить сразу после генерации</p>
+      <label class="flex items-center gap-3 text-sm {{ '' if telegram_ready else 'opacity-60' }}">
+        <input type="checkbox" id="sendTelegram" class="w-4 h-4 rounded border-brand-300">
+        Отправить в Telegram
+        {% if not telegram_ready %}<span class="text-xs text-amber-700">(токен не настроен — только лог)</span>{% endif %}
+      </label>
+      <label class="flex items-center gap-3 text-sm {{ '' if vk_ready else 'opacity-60' }}">
+        <input type="checkbox" id="sendVk" class="w-4 h-4 rounded border-brand-300">
+        Отправить в ВКонтакте
+        {% if not vk_ready %}<span class="text-xs text-amber-700">(токен не настроен — только лог)</span>{% endif %}
+      </label>
+    </div>
+
+    <button type="submit" id="generatePost"
+            class="btn-gold w-full rounded-full px-8 py-4 font-semibold hover:scale-105 transition-all duration-300">
+      Сгенерировать пост
+    </button>
+
+    <p class="text-xs text-brand-500">
+      Структура: шуточный крючок → польза массажа → ненавязчивый призыв с эмодзи.
+      Если внешнее ИИ-API недоступно, текст соберётся из встроенных офлайн-шаблонов.
+    </p>
+  </form>
+
+  <!-- Результат -->
+  <div class="bg-white rounded-3xl border border-brand-100 p-7 flex flex-col">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-gold-600 mb-2">Результат</p>
+        <h2 class="font-display text-2xl text-brand-800">Предпросмотр</h2>
+      </div>
+      <span id="postSource" class="hidden rounded-full bg-brand-50 border border-brand-100 text-xs px-3 py-1.5 text-brand-700"></span>
+    </div>
+
+    <textarea id="postPreview" rows="18" placeholder="Здесь появится сгенерированный текст…"
+              class="flex-1 w-full rounded-2xl border border-brand-200 px-5 py-4 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-gold-400"></textarea>
+
+    <div class="flex flex-wrap gap-3 mt-5">
+      <button type="button" id="copyPost"
+              class="rounded-full border border-brand-200 px-5 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">
+        Скопировать
+      </button>
+      <button type="button" id="publishTelegram" disabled
+              class="rounded-full border border-brand-200 px-5 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300 disabled:opacity-40">
+        В Telegram
+      </button>
+      <button type="button" id="publishVk" disabled
+              class="rounded-full border border-brand-200 px-5 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300 disabled:opacity-40">
+        ВКонтакте
+      </button>
+      <span id="publishLog" class="text-xs text-brand-500 self-center"></span>
+    </div>
+  </div>
+</div>
+
+<!-- Архив -->
+<div class="bg-white rounded-3xl border border-brand-100 p-7 mt-6">
+  <h2 class="font-display text-2xl text-brand-800 mb-1">Архив постов</h2>
+  <p class="text-sm text-brand-500 mb-5">
+    Записи старше {{ retention_days }} дней удаляются автоматически при запуске приложения.
+  </p>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-brand-50/70">
+        <tr class="text-left text-xs uppercase tracking-wider text-brand-600">
+          <th class="px-4 py-3">Дата</th>
+          <th class="px-4 py-3">Тема</th>
+          <th class="px-4 py-3">Тональность</th>
+          <th class="px-4 py-3">Источник</th>
+          <th class="px-4 py-3">Публикация</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody id="postsTable">
+        {% for post in posts %}
+        <tr class="border-t border-brand-50" data-post='{{ {"id": post.id, "content": post.content, "topic": post.topic} | tojson }}'>
+          <td class="px-4 py-3 whitespace-nowrap">{{ post.created_at | short_date }}</td>
+          <td class="px-4 py-3">
+            <p class="font-medium text-brand-800">{{ post.topic }}</p>
+            <p class="text-xs text-brand-500 line-clamp-1 max-w-md">{{ post.content[:120] }}…</p>
+          </td>
+          <td class="px-4 py-3 text-xs">{{ post.tone }}<span class="block text-brand-500">{{ post.length }}</span></td>
+          <td class="px-4 py-3">
+            <span class="rounded-full px-3 py-1 text-xs {{ 'bg-emerald-100 text-emerald-800' if post.source == 'ai' else 'bg-brand-50 text-brand-700' }}">
+              {{ 'ИИ-API' if post.source == 'ai' else 'офлайн-шаблон' }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-xs">
+            {% if post.sent_telegram %}<span class="text-emerald-700">TG ✓</span>{% endif %}
+            {% if post.sent_vk %}<span class="text-emerald-700 ml-2">VK ✓</span>{% endif %}
+            {% if not post.sent_telegram and not post.sent_vk %}<span class="text-brand-400">не публиковался</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right whitespace-nowrap">
+            <button type="button" class="js-load-post text-brand-600 hover:text-gold-600 font-medium">Открыть</button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="px-4 py-6 text-center text-brand-500">Архив пуст — сгенерируйте первый пост.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/marketing.js"></script>
+{% endblock %}

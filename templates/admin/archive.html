@@ -1,0 +1,159 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Архив{% endblock %}
+{% block page_title %}Архив и отзывы{% endblock %}
+{% block page_subtitle %}Скрытые услуги и мастера, управление отзывами на лендинге{% endblock %}
+
+{% block content %}
+<div class="grid gap-6 xl:grid-cols-2">
+  <!-- Скрытые услуги -->
+  <section class="bg-white rounded-3xl border border-brand-100 p-7">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Скрытые услуги</h2>
+    <p class="text-sm text-brand-500 mb-5">Не отображаются на сайте, но история записей сохранена.</p>
+
+    <div class="space-y-3">
+      {% for service in inactive_services %}
+      <div class="flex items-center gap-4 rounded-2xl border border-brand-100 p-4">
+        <img src="/static/uploads/{{ service.image_filename }}" alt="" class="w-14 h-14 rounded-xl object-cover">
+        <div class="flex-1 min-w-0">
+          <p class="font-medium text-brand-800 truncate">{{ service.title }}</p>
+          <p class="text-xs text-brand-500">{{ service.duration_label }} · {{ service.price | money }}</p>
+        </div>
+        <button type="button" class="js-restore-service rounded-full border border-brand-200 px-4 py-2 text-xs font-medium text-brand-700 hover:bg-brand-50"
+                data-id="{{ service.id }}">Вернуть</button>
+        {% if is_superadmin %}
+        <button type="button" class="js-hard-delete-service rounded-full border border-rose-200 px-4 py-2 text-xs font-medium text-rose-700 hover:bg-rose-50"
+                data-id="{{ service.id }}" data-title="{{ service.title }}">Удалить навсегда</button>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="text-sm text-brand-500">Скрытых услуг нет.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Скрытые мастера -->
+  <section class="bg-white rounded-3xl border border-brand-100 p-7">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Скрытые мастера</h2>
+    <p class="text-sm text-brand-500 mb-5">
+      При безвозвратном удалении записи переводятся на мастера «{{ 'Уволенный сотрудник' }}».
+    </p>
+
+    <div class="space-y-3">
+      {% for master in inactive_masters %}
+      <div class="flex items-center gap-4 rounded-2xl border border-brand-100 p-4">
+        <img src="/static/uploads/{{ master.avatar_filename }}" alt="" class="w-14 h-14 rounded-xl object-cover">
+        <div class="flex-1 min-w-0">
+          <p class="font-medium text-brand-800 truncate">{{ master.full_name }}</p>
+          <p class="text-xs text-brand-500">{{ master.specialization }}</p>
+        </div>
+        <button type="button" class="js-restore-master rounded-full border border-brand-200 px-4 py-2 text-xs font-medium text-brand-700 hover:bg-brand-50"
+                data-id="{{ master.id }}">Вернуть</button>
+        {% if is_superadmin %}
+        <button type="button" class="js-hard-delete-master rounded-full border border-rose-200 px-4 py-2 text-xs font-medium text-rose-700 hover:bg-rose-50"
+                data-id="{{ master.id }}" data-name="{{ master.full_name }}">Удалить навсегда</button>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="text-sm text-brand-500">Скрытых мастеров нет.</p>
+      {% endfor %}
+    </div>
+
+    <div class="mt-6 rounded-2xl bg-brand-50 border border-brand-100 p-4 text-sm text-brand-700">
+      Всего записей в базе: <span class="font-semibold">{{ bookings_total }}</span>.
+      История не удаляется вместе с мастерами и услугами — аналитика остаётся корректной.
+    </div>
+  </section>
+</div>
+
+<!-- Отзывы -->
+<section class="bg-white rounded-3xl border border-brand-100 p-7 mt-6">
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-5">
+    <div>
+      <h2 class="font-display text-2xl text-brand-800 mb-1">Отзывы на лендинге</h2>
+      <p class="text-sm text-brand-500">Публикуются в блоке «Отзывы» на главной странице.</p>
+    </div>
+    <button type="button" id="addReview"
+            class="btn-gold rounded-full px-5 py-2.5 text-sm font-semibold hover:scale-105 transition-all duration-300">
+      + Добавить отзыв
+    </button>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    {% for review in reviews %}
+    <article class="rounded-2xl border {{ 'border-brand-100' if review.is_published else 'border-amber-200 opacity-70' }} p-5"
+             data-review='{{ {"id": review.id, "author_name": review.author_name, "rating": review.rating, "text": review.text, "service_title": review.service_title, "is_published": review.is_published} | tojson }}'>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-gold-600">{{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }}</span>
+        <span class="text-xs text-brand-500">{{ review.created_at | short_date }}</span>
+      </div>
+      <p class="text-sm text-brand-700 leading-relaxed line-clamp-3">{{ review.text }}</p>
+      <p class="text-xs text-brand-500 mt-3">{{ review.author_name }} · {{ review.service_title }}</p>
+      <div class="flex gap-2 mt-4">
+        <button type="button" class="js-edit-review text-xs font-medium text-brand-600 hover:text-gold-600">Изменить</button>
+        <button type="button" class="js-toggle-review text-xs font-medium text-brand-600 hover:text-gold-600"
+                data-id="{{ review.id }}" data-published="{{ '1' if review.is_published else '0' }}">
+          {{ 'Снять с публикации' if review.is_published else 'Опубликовать' }}
+        </button>
+        {% if is_superadmin %}
+        <button type="button" class="js-delete-review text-xs font-medium text-rose-600 hover:text-rose-800 ml-auto" data-id="{{ review.id }}">Удалить</button>
+        {% endif %}
+      </div>
+    </article>
+    {% else %}
+    <p class="text-sm text-brand-500">Отзывов пока нет.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Модалка отзыва -->
+<div id="reviewModal" class="js-modal fixed inset-0 z-50 hidden items-center justify-center bg-brand-900/60 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-[2rem] w-full max-w-lg">
+    <div class="flex items-start justify-between gap-4 p-7 border-b border-brand-100">
+      <div>
+        <p class="text-xs uppercase tracking-[0.2em] text-gold-600">Отзыв</p>
+        <h2 class="font-display text-3xl text-brand-800">Публикация на лендинге</h2>
+      </div>
+      <button type="button" data-modal-close="reviewModal" class="text-brand-400 hover:text-brand-700 text-2xl leading-none">×</button>
+    </div>
+    <form id="reviewForm" class="p-7 space-y-5">
+      <input type="hidden" id="reviewId">
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Автор *</span>
+        <input type="text" id="reviewAuthor" required class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+      </label>
+      <div class="grid sm:grid-cols-2 gap-5">
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Оценка</span>
+          <select id="reviewRating" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+            {% for value in [5, 4, 3, 2, 1] %}<option value="{{ value }}">{{ "★" * value }}</option>{% endfor %}
+          </select>
+        </label>
+        <label class="block">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Услуга</span>
+          <input type="text" id="reviewService" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+        </label>
+      </div>
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Текст отзыва</span>
+        <textarea id="reviewText" rows="4" class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400"></textarea>
+      </label>
+      <label class="flex items-center gap-3 text-sm text-brand-700">
+        <input type="checkbox" id="reviewPublished" checked class="w-4 h-4 rounded border-brand-300">
+        Опубликовать на сайте
+      </label>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="btn-emerald rounded-full px-6 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">Сохранить</button>
+        <button type="button" data-modal-close="reviewModal" class="rounded-full border border-brand-200 px-6 py-3 text-sm font-medium text-brand-700 hover:bg-brand-50">Отмена</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.ARCHIVE_IS_SUPERADMIN = {{ 'true' if is_superadmin else 'false' }};
+</script>
+<script src="/static/js/archive.js"></script>
+{% endblock %}

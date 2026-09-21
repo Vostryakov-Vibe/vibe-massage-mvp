@@ -1,0 +1,132 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Настройки{% endblock %}
+{% block page_title %}Настройки{% endblock %}
+{% block page_subtitle %}Интеграции, безопасность и параметры приложения{% endblock %}
+
+{% block content %}
+{% if password_ok %}
+<div class="mb-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 px-5 py-4 text-sm">
+  Пароль успешно изменён.
+</div>
+{% endif %}
+{% if password_error %}
+<div class="mb-6 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 px-5 py-4 text-sm">
+  {{ password_error }}
+</div>
+{% endif %}
+
+<div class="grid gap-6 xl:grid-cols-2">
+  <!-- Смена пароля -->
+  <section class="bg-white rounded-3xl border border-brand-100 p-7">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Смена своего пароля</h2>
+    <p class="text-sm text-brand-500 mb-5">
+      Пароль хранится в виде bcrypt-хэша (cost 12) и не может быть восстановлен — только заменён.
+    </p>
+
+    <form method="post" action="/admin/settings/password" class="space-y-5">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Текущий пароль</span>
+        <input type="password" name="current_password" required
+               class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+      </label>
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Новый пароль</span>
+        <input type="password" name="new_password" required minlength="6"
+               class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+      </label>
+      <label class="block">
+        <span class="text-xs uppercase tracking-wider text-brand-600">Повторите новый пароль</span>
+        <input type="password" name="confirm_password" required minlength="6"
+               class="mt-2 w-full rounded-2xl border border-brand-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+      </label>
+      <button type="submit" class="btn-emerald rounded-full px-6 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">
+        Изменить пароль
+      </button>
+    </form>
+  </section>
+
+  <!-- Интеграции -->
+  <section class="bg-white rounded-3xl border border-brand-100 p-7">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Внешние интеграции</h2>
+    <p class="text-sm text-brand-500 mb-5">
+      Ключи задаются в файле <span class="font-mono text-xs bg-brand-50 px-2 py-1 rounded">.env</span>.
+      Без них приложение продолжает работать и пишет предупреждения в консоль.
+    </p>
+
+    <ul class="space-y-3 text-sm">
+      <li class="flex items-center justify-between rounded-2xl border border-brand-100 px-5 py-4">
+        <div>
+          <p class="font-medium text-brand-800">Telegram (уведомления о записях)</p>
+          <p class="text-xs text-brand-500">TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID</p>
+        </div>
+        <span class="rounded-full px-3 py-1 text-xs {{ 'bg-emerald-100 text-emerald-800' if telegram_ready else 'bg-slate-100 text-slate-600' }}">
+          {{ 'настроено' if telegram_ready else 'офлайн' }}
+        </span>
+      </li>
+      <li class="flex items-center justify-between rounded-2xl border border-brand-100 px-5 py-4">
+        <div>
+          <p class="font-medium text-brand-800">ВКонтакте (публикация постов)</p>
+          <p class="text-xs text-brand-500">VK_ACCESS_TOKEN, VK_GROUP_ID</p>
+        </div>
+        <span class="rounded-full px-3 py-1 text-xs {{ 'bg-emerald-100 text-emerald-800' if vk_ready else 'bg-slate-100 text-slate-600' }}">
+          {{ 'настроено' if vk_ready else 'офлайн' }}
+        </span>
+      </li>
+      <li class="flex items-center justify-between rounded-2xl border border-brand-100 px-5 py-4">
+        <div>
+          <p class="font-medium text-brand-800">Cloudflare Turnstile (антиспам)</p>
+          <p class="text-xs text-brand-500">TURNSTILE_SITE_KEY, TURNSTILE_SECRET_KEY</p>
+        </div>
+        <span class="rounded-full px-3 py-1 text-xs {{ 'bg-emerald-100 text-emerald-800' if turnstile_enabled else 'bg-slate-100 text-slate-600' }}">
+          {{ 'включён' if turnstile_enabled else 'офлайн-защита' }}
+        </span>
+      </li>
+      <li class="flex items-center justify-between rounded-2xl border border-brand-100 px-5 py-4">
+        <div>
+          <p class="font-medium text-brand-800">Маркетинговый ИИ</p>
+          <p class="text-xs text-brand-500 break-all">{{ ai_api_url }}</p>
+        </div>
+        <span class="rounded-full bg-slate-100 text-slate-600 px-3 py-1 text-xs">fallback готов</span>
+      </li>
+    </ul>
+
+    <div class="mt-5 rounded-2xl bg-brand-50 border border-brand-100 p-4 text-xs text-brand-700 leading-relaxed">
+      <p class="font-semibold text-brand-800 mb-1">Антиспам без интернета</p>
+      Если Turnstile не настроен, форма записи защищена: скрытое honeypot-поле, подписанный токен
+      формы (проверка времени заполнения) и лимит 5 заявок с одного IP за 10 минут.
+      Вход в админку дополнительно ограничен 10 попытками за 15 минут.
+    </div>
+  </section>
+
+  <!-- Контакты и параметры -->
+  <section class="bg-white rounded-3xl border border-brand-100 p-7">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Контакты салона на сайте</h2>
+    <p class="text-sm text-brand-500 mb-5">Меняются в .env (SALON_*) без правки кода.</p>
+    <dl class="space-y-3 text-sm">
+      <div class="flex justify-between gap-4 border-b border-brand-50 pb-3"><dt class="text-brand-500">Название</dt><dd class="font-medium text-right">{{ salon.name }}</dd></div>
+      <div class="flex justify-between gap-4 border-b border-brand-50 pb-3"><dt class="text-brand-500">Адрес</dt><dd class="font-medium text-right">{{ salon.address }}</dd></div>
+      <div class="flex justify-between gap-4 border-b border-brand-50 pb-3"><dt class="text-brand-500">Телефон</dt><dd class="font-medium text-right">{{ salon.phone }}</dd></div>
+      <div class="flex justify-between gap-4 border-b border-brand-50 pb-3"><dt class="text-brand-500">E-mail</dt><dd class="font-medium text-right">{{ salon.email }}</dd></div>
+      <div class="flex justify-between gap-4"><dt class="text-brand-500">Часы работы</dt><dd class="font-medium text-right">{{ salon.hours }}</dd></div>
+    </dl>
+  </section>
+
+  <!-- Параметры -->
+  <section class="bg-white rounded-3xl border border-brand-100 p-7">
+    <h2 class="font-display text-2xl text-brand-800 mb-1">Параметры приложения</h2>
+    <p class="text-sm text-brand-500 mb-5">Технические настройки текущего запуска.</p>
+    <dl class="space-y-3 text-sm">
+      <div class="flex justify-between gap-4 border-b border-brand-50 pb-3"><dt class="text-brand-500">Хранение архива постов</dt><dd class="font-medium">{{ retention_days }} дней</dd></div>
+      <div class="flex justify-between gap-4 border-b border-brand-50 pb-3"><dt class="text-brand-500">Шаг сетки слотов</dt><dd class="font-medium">30 минут</dd></div>
+      <div class="flex justify-between gap-4 border-b border-brand-50 pb-3"><dt class="text-brand-500">Роль текущего пользователя</dt><dd class="font-medium">{{ user.role }}</dd></div>
+      <div class="flex justify-between gap-4"><dt class="text-brand-500">Статусы записей</dt><dd class="font-medium text-right">{{ app_statuses | length }} этапов</dd></div>
+    </dl>
+    <div class="mt-5 rounded-2xl bg-brand-50 border border-brand-100 p-4 text-xs text-brand-700">
+      Все ассеты (Tailwind, Chart.js, Sortable.js, шрифты, изображения) хранятся локально в /static,
+      поэтому интерфейс полностью работоспособен без подключения к интернету.
+    </div>
+  </section>
+</div>
+{% endblock %}

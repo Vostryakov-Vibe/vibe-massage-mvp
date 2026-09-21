@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Согласие на обработку персональных данных — {{ salon.name }}{% endblock %}
+
+{% block content %}
+<section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+  <p class="uppercase tracking-[0.3em] text-gold-600 text-xs mb-4">Правовая информация</p>
+  <h1 class="font-display text-4xl sm:text-5xl text-brand-800 mb-4">Согласие на обработку персональных данных</h1>
+  <p class="text-sm text-brand-600 mb-12">Редакция от {{ updated | human_date }}</p>
+
+  <div class="space-y-6 text-brand-800/90 leading-relaxed">
+    <p>Я, субъект персональных данных, заполняя форму онлайн-записи на сайте {{ salon.name }},
+    свободно, своей волей и в своём интересе даю согласие на обработку моих персональных данных
+    {{ salon.name }} (далее — Оператор), расположенному по адресу: {{ salon.address }}.</p>
+
+    <h2 class="font-display text-2xl text-brand-800 pt-4">Перечень данных</h2>
+    <ul class="list-disc pl-6 space-y-2">
+      <li>фамилия, имя;</li>
+      <li>номер контактного телефона;</li>
+      <li>контакт в мессенджере (при указании);</li>
+      <li>сведения, указанные в комментарии к записи;</li>
+      <li>дата, время и IP-адрес предоставления согласия.</li>
+    </ul>
+
+    <h2 class="font-display text-2xl text-brand-800 pt-4">Перечень действий</h2>
+    <p>Сбор, запись, систематизация, накопление, хранение, уточнение (обновление, изменение),
+    извлечение, использование, блокирование, удаление и уничтожение персональных данных — как с
+    использованием средств автоматизации, так и без них.</p>
+
+    <h2 class="font-display text-2xl text-brand-800 pt-4">Цель обработки</h2>
+    <p>Оформление записи на процедуру массажа, подтверждение времени визита, напоминания,
+    ведение истории обслуживания и обеспечение безопасности проведения процедуры.</p>
+
+    <h2 class="font-display text-2xl text-brand-800 pt-4">Срок действия и отзыв</h2>
+    <p>Согласие действует до его отзыва. Согласие может быть отозвано в любой момент путём
+    направления письменного обращения Оператору по адресу {{ salon.address }} или на
+    <a href="mailto:{{ salon.email }}" class="text-gold-600 underline decoration-dotted">{{ salon.email }}</a>.
+    После отзыва Оператор прекращает обработку и уничтожает данные в срок, не превышающий 30 дней,
+    за исключением данных, хранение которых требуется по закону.</p>
+
+    <h2 class="font-display text-2xl text-brand-800 pt-4">Подтверждение</h2>
+    <p>Устанавливая отметку «Я даю согласие на обработку персональных данных» в форме онлайн-записи,
+    я подтверждаю, что ознакомлен(а) с
+    <a href="/policy/privacy" class="text-gold-600 underline decoration-dotted">Политикой конфиденциальности</a>,
+    мне понятен текст согласия, и я принимаю его условия.</p>
+
+    <div class="bg-brand-50 border border-brand-100 rounded-2xl p-5 text-sm text-brand-700">
+      Отметка о согласии фиксируется в информационной системе Оператора с указанием даты и
+      IP-адреса — это требование Федерального закона № 152-ФЗ.
+    </div>
+  </div>
+
+  <div class="mt-14 flex flex-wrap gap-4">
+    <a href="/policy/privacy" class="btn-emerald rounded-full px-7 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">Политика конфиденциальности</a>
+    <a href="/#booking" class="rounded-full px-7 py-3 text-sm font-semibold border border-brand-300 text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">Вернуться к записи</a>
+  </div>
+</section>
+{% endblock %}

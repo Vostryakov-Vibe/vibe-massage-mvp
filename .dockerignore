@@ -1,0 +1,16 @@
+# Контекст сборки Docker. На обычный запуск `python app.py` не влияет.
+
+.git
+.gitignore
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+instance
+data
+.env
+.vscode
+.idea
+*.md
+docker

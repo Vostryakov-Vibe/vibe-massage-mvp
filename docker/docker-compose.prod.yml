@@ -1,0 +1,66 @@
+# ===========================================================================
+#  Публикация на своём сервере (VPS) с автоматическим HTTPS.
+#
+#  Отличия от docker-compose.yml (локальный запуск):
+#   * приложение не публикует порт наружу — снаружи виден только Caddy;
+#   * Caddy сам получает и продлевает сертификат Let's Encrypt для вашего
+#     домена, поэтому HTTPS работает без ручной настройки;
+#   * контейнеры перезапускаются автоматически после сбоя или перезагрузки.
+#
+#  Порядок запуска на сервере (из корня проекта):
+#    1. Заполните .env: DOMAIN, SECRET_KEY, пароли (см. README, раздел 14).
+#    2. docker compose -f docker/docker-compose.prod.yml up -d --build
+#    3. Откройте https://<ваш-домен>/admin и смените пароли по умолчанию.
+# ===========================================================================
+
+services:
+  salon:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: salon-harmony:1.0.0
+    container_name: salon-harmony
+    environment:
+      # Внутри контейнера слушаем все интерфейсы, наружу не публикуем.
+      HOST: 0.0.0.0
+      PORT: "8000"
+      DEBUG: "false"
+      # За HTTPS-терминацией cookie сессии помечается флагом Secure.
+      SESSION_HTTPS_ONLY: "true"
+    env_file:
+      # Секреты и контакты салона: SECRET_KEY, пароли, токены интеграций.
+      - path: ../.env
+        required: false
+    volumes:
+      - salon-db:/app/instance
+      - salon-uploads:/app/static/uploads
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: salon-caddy
+    depends_on:
+      - salon
+    ports:
+      - "80:80"    # нужен для проверки домена и редиректа на HTTPS
+      - "443:443"  # сам сайт
+    environment:
+      # Домен обязателен: без него Caddy не сможет получить сертификат.
+      DOMAIN: "${DOMAIN:?Укажите DOMAIN в .env, например salon.example.com}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data      # сертификаты Let's Encrypt
+      - caddy-config:/config
+    restart: unless-stopped
+
+volumes:
+  salon-db:
+  salon-uploads:
+  caddy-data:
+  caddy-config:

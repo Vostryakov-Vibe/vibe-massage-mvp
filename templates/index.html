@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block title %}{{ salon.name }} — оздоровительный массаж и онлайн-запись{% endblock %}
+
+{% block content %}
+
+<!-- ======================= HERO ======================= -->
+<section class="relative overflow-hidden bg-gradient-to-br from-brand-500 via-brand-600 to-brand-900 text-white">
+  <div class="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-gold-500/20 blur-3xl"></div>
+  <div class="absolute bottom-0 left-1/4 w-72 h-72 rounded-full bg-brand-300/20 blur-3xl"></div>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 grid lg:grid-cols-2 gap-14 items-center">
+    <div class="reveal">
+      <p class="uppercase tracking-[0.3em] text-gold-300 text-xs mb-5">{{ salon.tagline }}</p>
+      <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl leading-[1.05] mb-6">
+        Здоровье спины<br>
+        <span class="text-gold-400">начинается с заботы</span>
+      </h1>
+      <p class="text-lg text-brand-100/90 max-w-xl mb-9 leading-relaxed">
+        Только профессиональный оздоровительный массаж: без интима и сомнительных услуг.
+        Мастера с медицинским образованием, индивидуальный подбор техники и прозрачные цены.
+      </p>
+      <div class="flex flex-wrap items-center gap-4">
+        <a href="#booking"
+           class="btn-gold rounded-full px-8 py-4 font-semibold hover:scale-105 transition-all duration-300">
+          Записаться онлайн
+        </a>
+        <a href="#services"
+           class="rounded-full px-8 py-4 font-semibold border border-gold-400/60 text-gold-200 hover:bg-gold-500/10 hover:scale-105 transition-all duration-300">
+          Наши программы
+        </a>
+      </div>
+
+      <dl class="grid grid-cols-3 gap-6 mt-14 max-w-lg">
+        <div>
+          <dt class="font-display text-4xl text-gold-400">{{ masters | length }}</dt>
+          <dd class="text-xs uppercase tracking-wider text-brand-100/70 mt-1">мастера</dd>
+        </div>
+        <div>
+          <dt class="font-display text-4xl text-gold-400">{{ services | length }}</dt>
+          <dd class="text-xs uppercase tracking-wider text-brand-100/70 mt-1">программ</dd>
+        </div>
+        <div>
+          <dt class="font-display text-4xl text-gold-400">10+</dt>
+          <dd class="text-xs uppercase tracking-wider text-brand-100/70 mt-1">лет опыта</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="reveal reveal-delay-2 hidden lg:block">
+      <div class="relative rounded-[2rem] overflow-hidden shadow-soft border border-gold-400/30">
+        {% if services %}
+        <img src="/static/uploads/{{ services[0].image_filename }}" alt="{{ services[0].title }}" class="w-full h-[26rem] object-cover">
+        {% endif %}
+        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-900/90 to-transparent p-7">
+          <p class="text-gold-300 text-xs uppercase tracking-[0.2em] mb-2">Спокойно · Профессионально · Бережно</p>
+          <p class="font-display text-2xl">Кабинет, где тело отдыхает, а мысли замедляются</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= О САЛОНЕ ======================= -->
+<section id="about" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+  <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+    <p class="uppercase tracking-[0.3em] text-gold-600 text-xs mb-4">О салоне</p>
+    <h2 class="font-display text-4xl sm:text-5xl text-brand-800 mb-5">Оздоровление без компромиссов</h2>
+    <p class="text-brand-700/80 leading-relaxed">
+      Мы работаем исключительно в оздоровительном формате: лечебный, классический,
+      спортивный, лимфодренажный массаж и массаж лица. Каждый сеанс начинается
+      с короткой диагностики, а мастер подбирает технику под ваш запрос.
+    </p>
+  </div>
+
+  <div class="grid gap-7 md:grid-cols-2 lg:grid-cols-4">
+    {% set features = [
+      ('Медицинское образование', 'Мастера с профильными сертификатами и опытом работы с лечебными техниками.'),
+      ('Диагностика перед сеансом', 'Оцениваем осанку и тонус мышц, подбираем протокол под ваш случай.'),
+      ('Только оздоровительный массаж', 'Никаких интимных услуг. Профессиональная этика и комфорт для каждого гостя.'),
+      ('Забота о данных', 'Работаем по 152-ФЗ: согласие фиксируется при каждой онлайн-записи.')
+    ] %}
+    {% for title, text in features %}
+    <article class="reveal reveal-delay-{{ loop.index0 % 3 + 1 }} bg-white rounded-3xl p-7 border border-brand-100 shadow-soft hover:-translate-y-1 transition-transform duration-300">
+      <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gold-300 to-gold-500 flex items-center justify-center text-brand-800 font-display text-xl mb-5">{{ loop.index }}</div>
+      <h3 class="font-semibold text-brand-800 mb-2">{{ title }}</h3>
+      <p class="text-sm text-brand-700/75 leading-relaxed">{{ text }}</p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ======================= УСЛУГИ ======================= -->
+<section id="services" class="bg-brand-50/60 py-24">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+      <p class="uppercase tracking-[0.3em] text-gold-600 text-xs mb-4">Услуги</p>
+      <h2 class="font-display text-4xl sm:text-5xl text-brand-800 mb-5">Программы массажа</h2>
+      <p class="text-brand-700/80">Выберите программу — стоимость и длительность фиксируются в момент записи.</p>
+    </div>
+
+    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      {% for service in services %}
+      <article class="reveal reveal-delay-{{ loop.index0 % 3 + 1 }} group bg-white rounded-3xl overflow-hidden border border-brand-100 shadow-soft flex flex-col">
+        <div class="relative h-52 overflow-hidden">
+          <img src="/static/uploads/{{ service.image_filename }}" alt="{{ service.title }}"
+               class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+          <span class="absolute top-4 left-4 rounded-full bg-brand-800/85 text-gold-300 text-[11px] uppercase tracking-wider px-3 py-1.5">{{ service.category }}</span>
+        </div>
+        <div class="p-7 flex flex-col flex-1">
+          <h3 class="font-display text-2xl text-brand-800 mb-3">{{ service.title }}</h3>
+          <p class="text-sm text-brand-700/80 leading-relaxed flex-1">{{ service.short_description }}</p>
+
+          <div class="flex items-center justify-between mt-6 mb-5">
+            <span class="text-xs text-brand-600 bg-brand-50 rounded-full px-3 py-1.5 border border-brand-100">{{ service.duration_label }}</span>
+            <span class="font-display text-2xl text-gold-600">{{ service.price | money }}</span>
+          </div>
+
+          <button type="button"
+                  class="js-pick-service btn-emerald rounded-full px-6 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300"
+                  data-service-id="{{ service.id }}">
+            Записаться на программу
+          </button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ======================= МАСТЕРА ======================= -->
+<section id="masters" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+  <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+    <p class="uppercase tracking-[0.3em] text-gold-600 text-xs mb-4">Команда</p>
+    <h2 class="font-display text-4xl sm:text-5xl text-brand-800 mb-5">Наши мастера</h2>
+    <p class="text-brand-700/80">Специалисты с опытом от пяти лет, регулярно повышающие квалификацию.</p>
+  </div>
+
+  <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+    {% for master in masters %}
+    <article class="reveal reveal-delay-{{ loop.index0 % 3 + 1 }} text-center bg-white rounded-3xl p-7 border border-brand-100 shadow-soft">
+      <img src="/static/uploads/{{ master.avatar_filename }}" alt="{{ master.full_name }}"
+           class="w-28 h-28 rounded-full mx-auto object-cover ring-4 ring-gold-400/40 mb-5">
+      <h3 class="font-display text-2xl text-brand-800">{{ master.full_name }}</h3>
+      <p class="text-sm text-gold-600 font-medium mt-1 mb-3">{{ master.specialization }}</p>
+      <p class="text-xs uppercase tracking-wider text-brand-500 mb-4">Опыт {{ master.experience_years }} {{ master.experience_years | plural('год', 'года', 'лет') }}</p>
+      <p class="text-sm text-brand-700/75 leading-relaxed">{{ master.bio }}</p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ======================= ОТЗЫВЫ ======================= -->
+<section id="reviews" class="bg-gradient-to-br from-brand-800 to-brand-900 text-white py-24">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+      <p class="uppercase tracking-[0.3em] text-gold-400 text-xs mb-4">Отзывы</p>
+      <h2 class="font-display text-4xl sm:text-5xl mb-5">Что говорят гости</h2>
+      <p class="text-brand-100/80">Реальные впечатления клиентов салона.</p>
+    </div>
+
+    <div class="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
+      {% for review in reviews %}
+      <figure class="reveal reveal-delay-{{ loop.index0 % 3 + 1 }} bg-brand-800/60 border border-gold-400/20 rounded-3xl p-7 backdrop-blur">
+        <div class="flex items-center gap-1 mb-4 text-gold-400">
+          {% for star in range(5) %}
+            <span class="{{ 'opacity-30' if star >= review.rating else '' }}">★</span>
+          {% endfor %}
+        </div>
+        <blockquote class="text-brand-50/90 leading-relaxed text-sm mb-5">«{{ review.text }}»</blockquote>
+        <figcaption class="text-xs text-gold-300">
+          {{ review.author_name }}
+          {% if review.service_title %}<span class="block text-brand-200/70 mt-1">{{ review.service_title }}</span>{% endif %}
+        </figcaption>
+      </figure>
+      {% else %}
+      <p class="text-brand-100/70">Отзывы скоро появятся.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ======================= ОНЛАЙН-ЗАПИСЬ ======================= -->
+<section id="booking" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+  <div class="text-center max-w-3xl mx-auto mb-14 reveal">
+    <p class="uppercase tracking-[0.3em] text-gold-600 text-xs mb-4">Онлайн-запись</p>
+    <h2 class="font-display text-4xl sm:text-5xl text-brand-800 mb-5">Забронируйте удобное время</h2>
+    <p class="text-brand-700/80">
+      Свободные окна рассчитываются автоматически по графику мастера и длительности программы.
+    </p>
+  </div>
+
+  <div class="grid lg:grid-cols-[1.55fr_1fr] gap-10 items-start">
+    <!-- Форма -->
+    <form id="bookingForm" class="reveal bg-white rounded-[2rem] border border-brand-100 shadow-soft p-8 sm:p-10 space-y-8" novalidate>
+      <input type="hidden" name="website" id="bookingHoneypot" autocomplete="off" tabindex="-1"
+             class="absolute opacity-0 pointer-events-none h-0 w-0" aria-hidden="true">
+
+      <!-- Шаг 1 -->
+      <fieldset>
+        <legend class="flex items-center gap-3 mb-4">
+          <span class="w-8 h-8 rounded-full bg-brand-600 text-white text-sm flex items-center justify-center">1</span>
+          <span class="font-semibold text-brand-800">Выберите программу</span>
+        </legend>
+        <select id="bookingService" required
+                class="w-full rounded-2xl border border-brand-200 bg-brand-50/40 px-5 py-4 text-brand-800 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-all duration-300">
+          <option value="">— выберите услугу —</option>
+          {% for service in services %}
+          <option value="{{ service.id }}">{{ service.title }} · {{ service.duration_label }} · {{ service.price | money }}</option>
+          {% endfor %}
+        </select>
+        <p id="serviceHint" class="text-xs text-brand-600 mt-2"></p>
+      </fieldset>
+
+      <!-- Шаг 2 -->
+      <fieldset>
+        <legend class="flex items-center gap-3 mb-4">
+          <span class="w-8 h-8 rounded-full bg-brand-600 text-white text-sm flex items-center justify-center">2</span>
+          <span class="font-semibold text-brand-800">Выберите мастера</span>
+        </legend>
+        <select id="bookingMaster" required disabled
+                class="w-full rounded-2xl border border-brand-200 bg-brand-50/40 px-5 py-4 text-brand-800 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-all duration-300 disabled:opacity-60">
+          <option value="">— сначала выберите услугу —</option>
+        </select>
+      </fieldset>
+
+      <!-- Шаг 3 -->
+      <fieldset>
+        <legend class="flex items-center gap-3 mb-4">
+          <span class="w-8 h-8 rounded-full bg-brand-600 text-white text-sm flex items-center justify-center">3</span>
+          <span class="font-semibold text-brand-800">Дата и время</span>
+        </legend>
+        <input type="date" id="bookingDate" required disabled
+               min="{{ today.isoformat() }}"
+               class="w-full sm:w-64 rounded-2xl border border-brand-200 bg-brand-50/40 px-5 py-4 text-brand-800 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-all duration-300 disabled:opacity-60">
+        <div id="slotArea" class="mt-4">
+          <p class="text-sm text-brand-600">Сначала выберите услугу, мастера и дату.</p>
+        </div>
+        <input type="hidden" id="bookingTime" required>
+      </fieldset>
+
+      <!-- Шаг 4 -->
+      <fieldset>
+        <legend class="flex items-center gap-3 mb-4">
+          <span class="w-8 h-8 rounded-full bg-brand-600 text-white text-sm flex items-center justify-center">4</span>
+          <span class="font-semibold text-brand-800">Контактные данные</span>
+        </legend>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <label class="block">
+            <span class="text-xs uppercase tracking-wider text-brand-600">Имя *</span>
+            <input type="text" id="bookingName" required placeholder="Как к вам обращаться"
+                   class="mt-2 w-full rounded-2xl border border-brand-200 bg-brand-50/40 px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-all duration-300">
+          </label>
+          <label class="block">
+            <span class="text-xs uppercase tracking-wider text-brand-600">Телефон *</span>
+            <input type="tel" id="bookingPhone" required placeholder="+7 (999) 123-45-67"
+                   class="mt-2 w-full rounded-2xl border border-brand-200 bg-brand-50/40 px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-all duration-300">
+          </label>
+        </div>
+        <label class="block mt-4">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Telegram / VK для связи</span>
+          <input type="text" id="bookingContact" placeholder="@nickname или ссылка"
+                 class="mt-2 w-full rounded-2xl border border-brand-200 bg-brand-50/40 px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-all duration-300">
+        </label>
+        <label class="block mt-4">
+          <span class="text-xs uppercase tracking-wider text-brand-600">Комментарий</span>
+          <textarea id="bookingComment" rows="3" placeholder="Пожелания, особенности здоровья, удобное время"
+                    class="mt-2 w-full rounded-2xl border border-brand-200 bg-brand-50/40 px-5 py-3.5 focus:outline-none focus:ring-2 focus:ring-gold-400 transition-all duration-300"></textarea>
+        </label>
+      </fieldset>
+
+      <!-- Антиспам -->
+      {% if turnstile_enabled %}
+      <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-theme="light"></div>
+      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+      {% endif %}
+
+      <!-- Согласие 152-ФЗ -->
+      <label class="flex items-start gap-3 bg-brand-50/60 border border-brand-100 rounded-2xl p-4">
+        <input type="checkbox" id="bookingConsent" required class="mt-1 w-5 h-5 rounded border-brand-300 text-brand-600 focus:ring-gold-400">
+        <span class="text-xs text-brand-700/85 leading-relaxed">
+          Я даю согласие на обработку персональных данных и соглашаюсь с
+          <a href="/policy/privacy" target="_blank" class="text-gold-600 underline decoration-dotted">Политикой конфиденциальности</a>
+          и <a href="/policy/consent" target="_blank" class="text-gold-600 underline decoration-dotted">Согласием на обработку данных</a>
+          (152-ФЗ). Обязательное поле.
+        </span>
+      </label>
+
+      <button type="submit" id="bookingSubmit"
+              class="btn-gold w-full rounded-full px-8 py-4 font-semibold hover:scale-105 transition-all duration-300">
+        Записаться
+      </button>
+    </form>
+
+    <!-- Сводка -->
+    <aside class="reveal reveal-delay-2 lg:sticky lg:top-28 bg-gradient-to-br from-brand-700 to-brand-900 text-white rounded-[2rem] p-8 shadow-soft">
+      <p class="uppercase tracking-[0.25em] text-gold-300 text-xs mb-6">Ваша запись</p>
+      <dl class="space-y-4 text-sm">
+        <div class="flex justify-between gap-4 border-b border-white/10 pb-3">
+          <dt class="text-brand-100/70">Программа</dt>
+          <dd id="summaryService" class="text-right font-medium">—</dd>
+        </div>
+        <div class="flex justify-between gap-4 border-b border-white/10 pb-3">
+          <dt class="text-brand-100/70">Мастер</dt>
+          <dd id="summaryMaster" class="text-right font-medium">—</dd>
+        </div>
+        <div class="flex justify-between gap-4 border-b border-white/10 pb-3">
+          <dt class="text-brand-100/70">Дата и время</dt>
+          <dd id="summaryDateTime" class="text-right font-medium">—</dd>
+        </div>
+        <div class="flex justify-between gap-4 border-b border-white/10 pb-3">
+          <dt class="text-brand-100/70">Длительность</dt>
+          <dd id="summaryDuration" class="text-right font-medium">—</dd>
+        </div>
+      </dl>
+      <div class="mt-6 flex items-end justify-between">
+        <span class="text-brand-100/70 text-sm">Стоимость</span>
+        <span id="summaryPrice" class="font-display text-4xl text-gold-400">—</span>
+      </div>
+      <p class="text-[11px] text-brand-200/70 mt-6 leading-relaxed">
+        Стоимость фиксируется в момент записи. Оплата — в салоне после сеанса.
+        Отмена или перенос — не позднее чем за 3 часа до визита.
+      </p>
+    </aside>
+  </div>
+</section>
+
+<!-- ======================= КОНТАКТЫ ======================= -->
+<section id="contacts" class="bg-brand-50/60 py-24">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-14 reveal">
+      <p class="uppercase tracking-[0.3em] text-gold-600 text-xs mb-4">Контакты</p>
+      <h2 class="font-display text-4xl sm:text-5xl text-brand-800 mb-5">Как нас найти</h2>
+    </div>
+
+    <div class="grid gap-7 md:grid-cols-3">
+      <div class="reveal bg-white rounded-3xl p-8 border border-brand-100 shadow-soft">
+        <p class="uppercase tracking-[0.2em] text-gold-600 text-xs mb-4">Адрес</p>
+        <p class="text-brand-800 font-medium leading-relaxed">{{ salon.address }}</p>
+        <p class="text-sm text-brand-600 mt-3">Пять минут пешком от метро, бесплатная парковка для гостей.</p>
+      </div>
+      <div class="reveal reveal-delay-1 bg-white rounded-3xl p-8 border border-brand-100 shadow-soft">
+        <p class="uppercase tracking-[0.2em] text-gold-600 text-xs mb-4">Связаться</p>
+        <p class="text-brand-800 font-medium"><a href="tel:{{ salon.phone | tel }}" class="hover:text-gold-600 transition-colors duration-300">{{ salon.phone }}</a></p>
+        <p class="text-brand-800 font-medium mt-2"><a href="mailto:{{ salon.email }}" class="hover:text-gold-600 transition-colors duration-300">{{ salon.email }}</a></p>
+        <p class="text-sm text-brand-600 mt-3">{{ salon.hours }}</p>
+      </div>
+      <div class="reveal reveal-delay-2 bg-white rounded-3xl p-8 border border-brand-100 shadow-soft">
+        <p class="uppercase tracking-[0.2em] text-gold-600 text-xs mb-4">Соцсети</p>
+        <p><a href="{{ salon.telegram }}" class="text-brand-800 hover:text-gold-600 transition-colors duration-300" rel="noopener">Telegram</a></p>
+        <p class="mt-2"><a href="{{ salon.vk }}" class="text-brand-800 hover:text-gold-600 transition-colors duration-300" rel="noopener">ВКонтакте</a></p>
+        <p class="mt-2"><a href="{{ salon.whatsapp }}" class="text-brand-800 hover:text-gold-600 transition-colors duration-300" rel="noopener">WhatsApp</a></p>
+        <p class="text-sm text-brand-600 mt-3">Отвечаем в мессенджерах ежедневно с 09:00 до 21:00.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= МОДАЛКА: ПОСАДОЧНЫЙ ТАЛОН ======================= -->
+<div id="ticketModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-brand-900/70 backdrop-blur-sm p-4">
+  <div class="w-full max-w-md">
+    <div class="ticket p-8">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <p class="uppercase tracking-[0.25em] text-gold-600 text-[10px]">Посадочный талон</p>
+          <p class="font-display text-3xl text-brand-800">Запись оформлена</p>
+        </div>
+        <div class="text-right">
+          <p class="text-[10px] uppercase tracking-wider text-brand-500">Код</p>
+          <p id="ticketCode" class="font-mono text-sm text-brand-800">—</p>
+        </div>
+      </div>
+
+      <div class="flex justify-center py-2">
+        <svg class="success-check" viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="success-check__circle" cx="50" cy="50" r="46"></circle>
+          <path class="success-check__mark" d="M30 52 L44 66 L71 37"></path>
+        </svg>
+      </div>
+
+      <p class="text-center text-sm text-brand-700/85 mt-3">
+        Мы отправили детали администратору. Он свяжется с вами для подтверждения.
+      </p>
+
+      <div class="ticket__perforation"></div>
+
+      <dl class="space-y-3 text-sm">
+        <div class="flex justify-between gap-4"><dt class="text-brand-500">Гость</dt><dd id="ticketClient" class="font-medium text-brand-800 text-right">—</dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-brand-500">Программа</dt><dd id="ticketService" class="font-medium text-brand-800 text-right">—</dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-brand-500">Мастер</dt><dd id="ticketMaster" class="font-medium text-brand-800 text-right">—</dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-brand-500">Дата</dt><dd id="ticketDate" class="font-medium text-brand-800 text-right">—</dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-brand-500">Время</dt><dd id="ticketTime" class="font-medium text-brand-800 text-right">—</dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-brand-500">Длительность</dt><dd id="ticketDuration" class="font-medium text-brand-800 text-right">—</dd></div>
+        <div class="flex justify-between gap-4 items-end pt-2 border-t border-brand-100">
+          <dt class="text-brand-500">Стоимость</dt><dd id="ticketPrice" class="font-display text-2xl text-gold-600">—</dd>
+        </div>
+      </dl>
+
+      <p class="text-[11px] text-brand-600 mt-6 leading-relaxed">
+        <span id="ticketAddress"></span><br>
+        Телефон салона: <span id="ticketPhone"></span>
+      </p>
+
+      <div class="flex gap-3 mt-7 no-print">
+        <button type="button" id="ticketPrint"
+                class="flex-1 rounded-full border border-brand-200 px-5 py-3 text-sm font-medium text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">
+          Распечатать
+        </button>
+        <button type="button" id="ticketClose"
+                class="btn-emerald flex-1 rounded-full px-5 py-3 text-sm font-semibold hover:scale-105 transition-all duration-300">
+          Готово
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/public.js"></script>
+{% endblock %}

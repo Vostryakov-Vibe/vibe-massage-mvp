@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Ошибка {{ code }} — {{ salon.name }}{% endblock %}
+
+{% block content %}
+<section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
+  <p class="font-display text-7xl text-gold-500 mb-6">{{ code }}</p>
+  <h1 class="font-display text-3xl sm:text-4xl text-brand-800 mb-5">
+    {% if code == 404 %}Страница не найдена{% elif code == 403 %}Доступ запрещён{% else %}Что-то пошло не так{% endif %}
+  </h1>
+  <p class="text-brand-700/80 mb-10">{{ message }}</p>
+  <div class="flex flex-wrap justify-center gap-4">
+    <a href="/" class="btn-gold rounded-full px-8 py-3.5 font-semibold hover:scale-105 transition-all duration-300">На главную</a>
+    <a href="/admin" class="rounded-full px-8 py-3.5 font-semibold border border-brand-300 text-brand-700 hover:bg-brand-50 hover:scale-105 transition-all duration-300">В админ-панель</a>
+  </div>
+</section>
+{% endblock %}

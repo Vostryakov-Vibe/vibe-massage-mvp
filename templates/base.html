@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ salon.name }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ salon.tagline }}. Онлайн-запись, профессиональные мастера, оздоровительные программы.{% endblock %}">
+
+  <!-- Все ассеты локальные: проект работает без интернета -->
+  <link rel="stylesheet" href="/static/css/fonts.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/vendor/tailwind.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef6f4', 100: '#d7eae6', 200: '#b0d5cd',
+              300: '#7fb8ac', 400: '#4f9488', 500: '#0b6b5f',
+              600: '#044a42', 700: '#043c35', 800: '#022c26', 900: '#011d19'
+            },
+            gold: {
+              100: '#faf1d6', 200: '#f3e3b3', 300: '#ecd28a',
+              400: '#e5c158', 500: '#d4af37', 600: '#b8952c', 700: '#8f7222'
+            }
+          },
+          fontFamily: {
+            sans: ['Manrope', 'Segoe UI', 'system-ui', 'sans-serif'],
+            display: ['Cormorant Garamond', 'Georgia', 'serif']
+          },
+          boxShadow: {
+            soft: '0 25px 50px -30px rgba(2, 44, 38, 0.45)'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<!-- ======================= Шапка ======================= -->
+<header class="sticky top-0 z-40 backdrop-blur bg-brand-800/95 text-white shadow-lg">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20">
+      <a href="/" class="flex items-center gap-3 group">
+        <span class="w-11 h-11 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-brand-800 font-display text-2xl font-bold transition-transform duration-300 group-hover:scale-105">Г</span>
+        <span class="leading-tight">
+          <span class="block font-display text-2xl tracking-wide">{{ salon.name }}</span>
+          <span class="block text-[11px] uppercase tracking-[0.22em] text-gold-300">{{ salon.tagline }}</span>
+        </span>
+      </a>
+
+      <nav class="hidden lg:flex items-center gap-8 text-sm font-medium">
+        <a href="#about" class="hover:text-gold-300 transition-colors duration-300">О салоне</a>
+        <a href="#services" class="hover:text-gold-300 transition-colors duration-300">Услуги</a>
+        <a href="#masters" class="hover:text-gold-300 transition-colors duration-300">Мастера</a>
+        <a href="#reviews" class="hover:text-gold-300 transition-colors duration-300">Отзывы</a>
+        <a href="#contacts" class="hover:text-gold-300 transition-colors duration-300">Контакты</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <a href="tel:{{ salon.phone | tel }}"
+           class="hidden sm:block text-sm text-gold-200 hover:text-gold-400 transition-colors duration-300">{{ salon.phone }}</a>
+        <a href="#booking"
+           class="btn-gold rounded-full px-5 py-2.5 text-sm font-semibold hover:scale-105 transition-all duration-300">
+          Записаться
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="flex-1">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ======================= Подвал ======================= -->
+<footer class="bg-brand-900 text-brand-100 mt-24">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid gap-10 md:grid-cols-3">
+    <div>
+      <p class="font-display text-2xl text-white mb-3">{{ salon.name }}</p>
+      <p class="text-sm text-brand-200 leading-relaxed">
+        Только оздоровительный и профессиональный массаж. Работаем с 2014 года,
+        мастера с медицинским образованием и профильными сертификатами.
+      </p>
+    </div>
+    <div class="text-sm space-y-2">
+      <p class="uppercase tracking-[0.2em] text-gold-400 text-xs mb-3">Контакты</p>
+      <p>{{ salon.address }}</p>
+      <p><a href="tel:{{ salon.phone | tel }}" class="hover:text-gold-300 transition-colors duration-300">{{ salon.phone }}</a></p>
+      <p><a href="mailto:{{ salon.email }}" class="hover:text-gold-300 transition-colors duration-300">{{ salon.email }}</a></p>
+      <p>{{ salon.hours }}</p>
+    </div>
+    <div class="text-sm space-y-2">
+      <p class="uppercase tracking-[0.2em] text-gold-400 text-xs mb-3">Мы в соцсетях</p>
+      <p><a href="{{ salon.telegram }}" class="hover:text-gold-300 transition-colors duration-300" rel="noopener">Telegram</a></p>
+      <p><a href="{{ salon.vk }}" class="hover:text-gold-300 transition-colors duration-300" rel="noopener">ВКонтакте</a></p>
+      <p><a href="{{ salon.whatsapp }}" class="hover:text-gold-300 transition-colors duration-300" rel="noopener">WhatsApp</a></p>
+      <p class="pt-3 text-xs text-brand-300">
+        <a href="/policy/privacy" class="underline decoration-dotted hover:text-gold-300">Политика конфиденциальности</a><br>
+        <a href="/policy/consent" class="underline decoration-dotted hover:text-gold-300">Согласие на обработку данных</a>
+      </p>
+    </div>
+  </div>
+  <div class="border-t border-brand-700/60">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-brand-300">
+      <p>© {{ salon.name }}. Информация на сайте не является публичной офертой.</p>
+      <a href="/admin" class="hover:text-gold-300 transition-colors duration-300">Вход для сотрудников</a>
+    </div>
+  </div>
+</footer>
+
+<div class="toast-stack" id="toastStack"></div>
+
+<script src="/static/js/common.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
