@@ -16,15 +16,10 @@ services:
       HOST: 0.0.0.0
       PORT: "8000"
       DEBUG: "false"
-      # Секрет для подписи cookie сессии. Замените на свой!
-      SECRET_KEY: "change-me-in-production-please"
-      # Ключи интеграций можно задать здесь или в файле ../.env
-      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN:-}"
-      TELEGRAM_CHAT_ID: "${TELEGRAM_CHAT_ID:-}"
-      VK_ACCESS_TOKEN: "${VK_ACCESS_TOKEN:-}"
-      VK_GROUP_ID: "${VK_GROUP_ID:-}"
-      TURNSTILE_SITE_KEY: "${TURNSTILE_SITE_KEY:-}"
-      TURNSTILE_SECRET_KEY: "${TURNSTILE_SECRET_KEY:-}"
+      # Секреты (SECRET_KEY, пароли, токены Telegram/VK/Turnstile) живут
+      # только в ../.env. Значения из environment переопределяют env_file,
+      # поэтому построчное дублирование вида ${VAR:-} затирало реальные
+      # значения из .env (SECRET_KEY подписывался бы захардкоженным ключом).
     env_file:
       # Файл .env необязателен: без него приложение работает в офлайн-режиме.
       - path: ../.env
